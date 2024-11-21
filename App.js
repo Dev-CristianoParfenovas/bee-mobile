@@ -1,7 +1,9 @@
 import Login from "./src/screens/login/login.jsx";
+import Account from "./src/screens/account/account.jsx";
+import Products from "./src/screens/products/products.jsx";
 
 function App() {
-  return <Login />;
+  return <Products />;
 }
 
 export default App;
