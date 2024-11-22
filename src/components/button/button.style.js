@@ -9,8 +9,9 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 50,
-    width: 350,
+    width: 350, // Tamanho maior para o botão principal
   },
+
   text: {
     color: COLORS.white,
     fontSize: FONT_SIZE.lg,

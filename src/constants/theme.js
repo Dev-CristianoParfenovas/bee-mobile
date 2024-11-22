@@ -1,14 +1,17 @@
 const COLORS = {
   white: "#ffffff",
   bluebtn: "#60a5fa",
+  bluebtnsmall: "#71a1fc", //"#89aef3",
   blueprincipal: "#2e3192",
   yellowbee: "#f1dc4f",
+  red: "red",
   black: "#000000",
   gray1: "#323434",
   gray2: "#717f7f",
   gray3: "#a0a0a0",
   gray4: "#E4E4E4",
   gray5: "#f1f5f4",
+  gray6: "#d3d8e2",
 };
 
 const FONT_SIZE = {
