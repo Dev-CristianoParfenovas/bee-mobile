@@ -9,9 +9,9 @@ const COLORS = {
   gray1: "#323434",
   gray2: "#717f7f",
   gray3: "#a0a0a0",
-  gray4: "#E4E4E4",
-  gray5: "#f1f5f4",
-  gray6: "#d3d8e2",
+  gray4: "#d3d8e2",
+  gray5: "#E4E4E4",
+  gray6: "#f1f5f4",
 };
 
 const FONT_SIZE = {

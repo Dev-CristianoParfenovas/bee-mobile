@@ -8,15 +8,18 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import icons from "../../constants/icons.js";
 import { styles } from "./cart.style.js";
 import { products } from "../../constants/dados.js";
+import ButtonPayment from "../../components/button_payment/button_payment.jsx";
 
 function Cart() {
-  // Estado para gerenciar os produtos no carrinho
   const [cartItems, setCartItems] = useState(
     products.map((product) => ({ ...product, quantity: 1 }))
   );
+
+  // Função para calcular o total de itens no carrinho
+  const getCartCount = () =>
+    cartItems.reduce((total, item) => total + item.quantity, 0);
 
   // Função para incrementar a quantidade
   const incrementQuantity = (id) => {
@@ -66,6 +69,23 @@ function Cart() {
       <View style={styles.banner}>
         <View style={styles.containerbanner}>
           <Text style={styles.text}>Carrinho</Text>
+
+          {/* Botão do Carrinho com Badge */}
+          <View style={styles.cartIconContainer}>
+            <TouchableOpacity
+              style={styles.cartButton}
+              onPress={() => Alert.alert("Ação do Carrinho")}
+            >
+              <Ionicons name="cart-outline" size={30} color="white" />
+            </TouchableOpacity>
+
+            {/* Badge mostrando o número de itens */}
+            {getCartCount() > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{getCartCount()}</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
@@ -77,17 +97,11 @@ function Cart() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              {/* Imagem do produto */}
               <Image source={{ uri: item.image }} style={styles.image} />
-
-              {/* Detalhes do produto */}
               <View style={styles.details}>
-                {/* Nome do produto */}
                 <Text style={styles.name} numberOfLines={1}>
                   {item.name}
                 </Text>
-
-                {/* Preço total do produto (quantidade * preço unitário) */}
                 <Text style={styles.price}>
                   R${" "}
                   {(
@@ -95,8 +109,6 @@ function Cart() {
                     item.quantity
                   ).toFixed(2)}
                 </Text>
-
-                {/* Controles de quantidade */}
                 <View style={styles.quantityControls}>
                   <TouchableOpacity
                     style={styles.btnSmall}
@@ -111,8 +123,6 @@ function Cart() {
                   >
                     <Text style={styles.btnText}>+</Text>
                   </TouchableOpacity>
-
-                  {/* Botão de remover */}
                   <TouchableOpacity
                     style={styles.removeButton}
                     onPress={() => removeItem(item.id)}
@@ -130,6 +140,9 @@ function Cart() {
       <View style={styles.totalContainer}>
         <Text style={styles.totalText}>Total:</Text>
         <Text style={styles.totalValue}>R$ {calculateTotal().toFixed(2)}</Text>
+        <View>
+          <ButtonPayment text="Pagamento" />
+        </View>
       </View>
     </View>
   );

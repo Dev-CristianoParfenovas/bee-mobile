@@ -7,17 +7,38 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   banner: {
-    height: 110,
+    height: 110, // Altura fixa
     backgroundColor: COLORS.bluebtn,
     justifyContent: "center",
-    alignItems: "center",
+    // justifyContent: "space-between",
+    position: "relative",
   },
+  containerbanner: {
+    flexDirection: "row", // Organiza os itens em linha
+    alignItems: "center", // Centraliza verticalmente
+    justifyContent: "center", // Centraliza o texto "Carrinho"
+    height: "100%", // Garante que o container ocupe toda a altura do banner
+    position: "relative", // Permite posicionar o botão do carrinho separadamente
+    top: "30%",
+    justifyContent: "space-between",
+    padding: 12,
+  },
+
   text: {
     color: COLORS.white,
     fontSize: FONT_SIZE.xl,
-    textAlign: "center",
-    marginTop: 35,
+    fontWeight: "bold",
   },
+
+  cartButton: {
+    position: "absolute", // Permite posicionar o botão fora do fluxo principal
+    right: 16, // Alinha o botão ao canto direito
+    top: "72%", // Centraliza verticalmente
+    transform: [{ translateY: -12 }], // Ajusta a posição vertical (metade do ícone, caso necessário)
+    padding: 8,
+    //  marginTop: 28,
+  },
+
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
@@ -66,7 +87,7 @@ export const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 8,
-    backgroundColor: COLORS.gray6,
+    backgroundColor: COLORS.gray5,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -95,7 +116,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     padding: 5,
     marginTop: 5,
-    backgroundColor: COLORS.gray5,
+    backgroundColor: COLORS.gray6,
   },
   totalContainer: {
     flexDirection: "row", // Alinha o texto do total e o valor horizontalmente
@@ -115,5 +136,27 @@ export const styles = StyleSheet.create({
     fontSize: 20, // Tamanho maior para destacar o valor
     fontWeight: "bold", // Deixa o valor mais chamativo
     color: "#007AFF", // Azul para destacar o valor
+  },
+  cartIconContainer: {
+    position: "relative",
+  },
+  cartButton: {
+    padding: 8,
+  },
+  cartBadge: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "red",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cartBadgeText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });

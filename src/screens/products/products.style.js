@@ -2,71 +2,112 @@ import { StyleSheet } from "react-native";
 import { COLORS, FONT_SIZE } from "../../constants/theme.js";
 
 export const styles = StyleSheet.create({
-  beelogin: {
-    width: 200,
-    height: 200,
-  },
-  containerlogo: {
-    alignItems: "center",
-    paddingTop: 55,
-  },
-  banner: {
-    height: 110, // Proporção do banner na tela
-    backgroundColor: COLORS.bluebtn,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  // Container Principal
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  containerbanner: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  containerproducts: {
-    flex: 1, // Ocupa o espaço restante
-    padding: 20,
-    marginTop: 20,
-    backgroundColor: COLORS.background, // Cor de fundo (se necessário)
+    backgroundColor: COLORS.lightGray,
   },
 
+  // Banner
+  banner: {
+    height: 120,
+    backgroundColor: COLORS.bluebtn,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  containerbanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    top: "28%",
+  },
   text: {
     color: COLORS.white,
     fontSize: FONT_SIZE.xl,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    color: COLORS.white,
+    fontSize: FONT_SIZE.sm,
     textAlign: "center",
-    marginTop: 35,
+    marginTop: 32,
+  },
+  cartContainer: {
+    position: "relative",
+  },
+  cartButton: {
+    padding: 8,
+  },
+  cartBadge: {
+    position: "absolute",
+    top: -6, // Ajuste para alinhar melhor
+    right: -6, // Posicionado no canto do botão
+    backgroundColor: COLORS.red, // Cor de fundo visível
+    borderRadius: 10, // Torna o badge circular
+    minWidth: 20, // Largura mínima para acomodar o texto
+    minHeight: 20, // Altura mínima
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4, // Margem interna para texto
+  },
+  cartBadgeText: {
+    color: COLORS.white, // Texto branco para contraste
+    fontSize: FONT_SIZE.sm, // Tamanho do texto
+    fontWeight: "bold", // Negrito para destaque
+  },
+
+  // Produtos
+  containerproducts: {
+    flex: 1,
   },
   card: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
     padding: 10,
-    marginBottom: 10,
-    alignItems: "center",
+    marginVertical: 10,
+    marginHorizontal: 16,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
+    alignItems: "center",
   },
   image: {
-    width: 50,
-    height: 50,
-    borderRadius: 50,
-    marginRight: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 8,
   },
   details: {
-    flex: 1,
-    justifyContent: "center",
+    alignItems: "center",
   },
   name: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 5,
+    fontSize: FONT_SIZE.md,
+    fontWeight: "600",
+    color: COLORS.dark,
+    marginBottom: 4,
   },
   price: {
-    fontSize: 16,
-    color: "#555",
+    fontSize: FONT_SIZE.sm,
+    fontWeight: "bold",
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  addToCartButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.bluebtn,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 5,
+  },
+  addToCartText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZE.sm,
+    marginLeft: 8,
   },
 });

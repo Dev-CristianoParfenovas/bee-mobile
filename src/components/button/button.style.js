@@ -11,6 +11,15 @@ export const styles = StyleSheet.create({
     height: 50,
     width: 350, // Tamanho maior para o botão principal
   },
+  btnpayment: {
+    backgroundColor: COLORS.bluebtn,
+    borderRadius: 40,
+    elevation: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 50,
+    width: 80, // Tamanho maior para o botão principal
+  },
 
   text: {
     color: COLORS.white,
