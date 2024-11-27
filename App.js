@@ -7,7 +7,7 @@ import Cart from "./src/screens/cart/cart.jsx";
 import Payment from "./src/screens/payment/payment.jsx";
 
 function App() {
-  return <Products />;
+  return <Login />;
 }
 
 export default App;

@@ -4,12 +4,12 @@ import { COLORS, FONT_SIZE } from "../../constants/theme.js";
 export const styles = StyleSheet.create({
   btn: {
     backgroundColor: COLORS.bluebtn,
-    borderRadius: 40,
+    borderRadius: 15,
     elevation: 3,
     alignItems: "center",
     justifyContent: "center",
     height: 50,
-    width: 350, // Tamanho maior para o botão principal
+    width: "100%", // Tamanho maior para o botão principal
   },
   btnpayment: {
     backgroundColor: COLORS.bluebtn,

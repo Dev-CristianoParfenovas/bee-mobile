@@ -23,6 +23,13 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 35,
   },
+  watermark: {
+    position: "absolute",
+    width: 350, // Largura desejada para o logo
+    height: 350, // Altura desejada para o logo
+    alignSelf: "center", // Centraliza horizontalmente
+    top: "40%", // Ajusta a posição vertical
+  },
 
   image: {
     width: 50,

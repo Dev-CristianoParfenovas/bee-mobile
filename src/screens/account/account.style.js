@@ -16,25 +16,54 @@ export const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: COLORS.blueprincipal,
   },
+  watermark: {
+    position: "absolute",
+    width: 350, // Largura desejada para o logo
+    height: 350, // Altura desejada para o logo
+    alignSelf: "center", // Centraliza horizontalmente
+    top: "40%", // Ajusta a posição vertical
+  },
 
   containerInput: {
     marginBottom: 20,
   },
-  input: {
-    backgroundColor: COLORS.gray5,
-    padding: 12,
-    borderRadius: 40,
+  inputWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 15, // Deixa o container arredondado
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 10,
     height: 50,
-    width: 350,
+    width: "100%",
+    marginBottom: 10,
+  },
+  input: {
+    flex: 1, // Faz o TextInput ocupar o restante do espaço
+    marginLeft: 10, // Espaço entre o ícone e o campo
+    color: COLORS.white,
+    fontSize: FONT_SIZE.md,
+  },
+  inputError: {
+    borderColor: "red", // Borda vermelha para campos com erro
+  },
+  errorText: {
+    color: COLORS.yellowbee, // Texto vermelho
+    fontSize: 12,
+    marginTop: 5,
+    paddingLeft: 8,
   },
   text: {
     color: COLORS.white,
     fontSize: FONT_SIZE.xl,
   },
   footer: {
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
+    bottom: 0,
   },
   textfooter: {
     color: COLORS.white,

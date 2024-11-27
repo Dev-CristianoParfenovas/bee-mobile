@@ -11,6 +11,7 @@ import { styles } from "./employee_customer.style.js";
 import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
 import Button from "../../components/button/button.jsx";
+import images from "../../constants/icons.js";
 
 function EmployeeCustomer() {
   const [employee, setEmployee] = useState("");
@@ -24,6 +25,13 @@ function EmployeeCustomer() {
 
   return (
     <View style={styles.container}>
+      {/* Marca d'água */}
+      <Image
+        source={images.beelogin}
+        style={styles.watermark}
+        resizeMode="contain"
+        opacity={0.1} // Ajuste para o efeito de marca d'água
+      />
       <View style={styles.banner}>
         <View style={styles.containerbanner}>
           <Text style={styles.text}>Funcionário / Cliente</Text>
