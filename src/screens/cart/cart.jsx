@@ -11,11 +11,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./cart.style.js";
 import { products } from "../../constants/dados.js";
 import ButtonPayment from "../../components/button_payment/button_payment.jsx";
+import { useNavigation } from "@react-navigation/native";
 
-function Cart() {
+function Cart(props) {
   const [cartItems, setCartItems] = useState(
     products.map((product) => ({ ...product, quantity: 1 }))
   );
+
+  const navigation = useNavigation(); // Hook para acessar a navegação
 
   // Função para calcular o total de itens no carrinho
   const getCartCount = () =>
@@ -68,6 +71,13 @@ function Cart() {
       {/* Banner no topo */}
       <View style={styles.banner}>
         <View style={styles.containerbanner}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back-outline" size={30} color="white" />
+          </TouchableOpacity>
+
           <Text style={styles.text}>Carrinho</Text>
 
           {/* Botão do Carrinho com Badge */}
@@ -141,7 +151,10 @@ function Cart() {
         <Text style={styles.totalText}>Total:</Text>
         <Text style={styles.totalValue}>R$ {calculateTotal().toFixed(2)}</Text>
         <View>
-          <ButtonPayment text="Pagamento" />
+          <ButtonPayment
+            text="Pagamento"
+            onPress={() => props.navigation.navigate("payment")}
+          />
         </View>
       </View>
     </View>

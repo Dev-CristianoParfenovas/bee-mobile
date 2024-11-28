@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./products.style.js";
 import { products } from "../../constants/dados.js";
 
-function Products() {
+function Products(props) {
   const [cartCount, setCartCount] = useState(0); // Contador do carrinho
 
   // Função para quando o item for clicado
@@ -22,7 +22,16 @@ function Products() {
   // Função para adicionar ao carrinho
   const addToCart = (item) => {
     setCartCount(cartCount + 1);
-    Alert.alert("Carrinho", `${item.name} foi adicionado ao carrinho!`);
+    Alert.alert("Carrinho", `${item.name} foi adicionado ao carrinho!`, [
+      {
+        text: "Ir para o carrinho",
+        onPress: () => props.navigation.navigate("cart"),
+      },
+      {
+        text: "Continuar comprando",
+        style: "cancel",
+      },
+    ]);
   };
 
   return (

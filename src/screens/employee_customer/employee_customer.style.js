@@ -70,7 +70,9 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   containerbtn: {
+    width: "100%",
     alignItems: "center",
     marginBottom: 25,
+    padding: 15,
   },
 });

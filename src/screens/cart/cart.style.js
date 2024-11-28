@@ -159,4 +159,11 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
 });

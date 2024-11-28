@@ -1,26 +1,15 @@
 import { useState } from "react";
-import {
-  Image,
-  TextInput,
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import { Image, View, Text, TouchableOpacity, Alert } from "react-native";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
 import icons from "../../constants/icons.js";
 import { styles } from "./login.style.js";
 import Button from "../../components/button/button.jsx";
-import {
-  validateEmail,
-  validatePassword,
-  validateForm,
-} from "../../utils/validators.js";
+import { validateForm } from "../../utils/validators.js";
 import { COLORS } from "../../constants/theme.js";
 import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
 
-function Login() {
+function Login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
@@ -87,7 +76,7 @@ function Login() {
       </View>
       <View style={styles.footer}>
         <Text style={styles.textfooter}>Não tem conta. </Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => props.navigation.navigate("account")}>
           <Text style={styles.footerLink}>Criar agora</Text>
         </TouchableOpacity>
       </View>

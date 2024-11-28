@@ -13,7 +13,7 @@ import { useState } from "react";
 import Button from "../../components/button/button.jsx";
 import images from "../../constants/icons.js";
 
-function EmployeeCustomer() {
+function EmployeeCustomer(props) {
   const [employee, setEmployee] = useState("");
 
   // Supondo que customers seja uma lista pré-definida de clientes
@@ -63,7 +63,10 @@ function EmployeeCustomer() {
         </View>
       </View>
       <View style={styles.containerbtn}>
-        <Button text="Acessar vendas" />
+        <Button
+          text="Acessar vendas"
+          onPress={() => props.navigation.navigate("products")}
+        />
       </View>
     </View>
   );

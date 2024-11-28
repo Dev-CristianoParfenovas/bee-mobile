@@ -21,7 +21,7 @@ import { COLORS } from "../../constants/theme.js";
 import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
 
-function Account() {
+function Account(props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -110,7 +110,9 @@ function Account() {
       </View>
       <View style={styles.footer}>
         <Text style={styles.textfooter}>Já tenho conta. </Text>
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => props.navigation.navigate("employeecustomer")}
+        >
           <Text style={styles.footerLink}>Fazer login</Text>
         </TouchableOpacity>
       </View>
