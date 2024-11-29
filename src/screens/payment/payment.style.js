@@ -9,7 +9,8 @@ export const styles = StyleSheet.create({
   banner: {
     height: 110,
     backgroundColor: COLORS.bluebtn,
-    justifyContent: "center",
+    justifyContent: "space-evenly",
+    padding: 1,
     alignItems: "center",
     flexDirection: "row",
     gap: 10,
@@ -27,9 +28,14 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
     marginTop: 35,
+    paddingRight: 65,
+  },
+  backButton: {
+    marginTop: 40,
   },
   icone: {
-    marginTop: 35,
+    marginTop: 40,
+    paddingLeft: 35,
   },
   orderSummary: {
     padding: 20,

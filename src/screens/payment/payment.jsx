@@ -10,6 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./payment.style.js";
 import images from "../../constants/icons.js";
+import { useNavigation } from "@react-navigation/native";
 
 const items = [
   { id: "1", name: "Produto A", quantity: 2, price: 50 },
@@ -24,6 +25,8 @@ const Payment = () => {
   const tax = 0.1 * subtotal; // Exemplo: 10% de taxas
   const total = subtotal + tax;
 
+  const navigation = useNavigation(); // Hook para acessar a navegação
+
   return (
     <View style={styles.container}>
       {/* Marca d'água */}
@@ -36,6 +39,13 @@ const Payment = () => {
 
       {/* Banner */}
       <View style={styles.banner}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back-outline" size={30} color="white" />
+        </TouchableOpacity>
+
         <Ionicons
           style={styles.icone}
           name="card-outline"

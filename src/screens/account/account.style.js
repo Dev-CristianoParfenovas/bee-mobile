@@ -72,4 +72,19 @@ export const styles = StyleSheet.create({
     color: COLORS.yellowbee,
     paddingLeft: 2,
   },
+  containerSwitch: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10, // Expande a área clicável verticalmente
+    paddingHorizontal: 5, // Expande horizontalmente
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: COLORS.white,
+    marginRight: 25, // Espaço entre o texto e o switch
+  },
+  touchableArea: {
+    padding: 5, // Expande a área clicável ao redor do Switch
+    borderRadius: 10, // Suaviza os cantos (opcional)
+  },
 });
