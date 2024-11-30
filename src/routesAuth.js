@@ -1,5 +1,3 @@
-import Login from "./screens/login/login.jsx";
-import Account from "./screens/account/account.jsx";
 import EmployeeCustomer from "./screens/employee_customer/employee_customer.jsx";
 import Products from "./screens/products/products.jsx";
 import Cart from "./screens/cart/cart.jsx";
@@ -9,20 +7,34 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 const Stack = createNativeStackNavigator();
 
-function Routes() {
+function RoutesAuth() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
-          name="login"
-          component={Login}
+          name="employeecustomer"
+          component={EmployeeCustomer}
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen
-          name="account"
-          component={Account}
+          name="products"
+          component={Products}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="cart"
+          component={Cart}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="payment"
+          component={Payment}
           options={{
             headerShown: false,
           }}
@@ -32,4 +44,4 @@ function Routes() {
   );
 }
 
-export default Routes;
+export default RoutesAuth;
