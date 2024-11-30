@@ -1,9 +1,5 @@
 import Login from "./screens/login/login.jsx";
 import Account from "./screens/account/account.jsx";
-import EmployeeCustomer from "./screens/employee_customer/employee_customer.jsx";
-import Products from "./screens/products/products.jsx";
-import Cart from "./screens/cart/cart.jsx";
-import Payment from "./screens/payment/payment.jsx";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
