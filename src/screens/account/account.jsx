@@ -158,7 +158,7 @@ function Account(props) {
       <View style={styles.footer}>
         <Text style={styles.textfooter}>Já tenho conta. </Text>
         <TouchableOpacity
-          onPress={() => props.navigation.navigate("employeecustomer")}
+        // onPress={() => props.navigation.navigate("employeecustomer")}
         >
           <Text style={styles.footerLink}>Fazer login</Text>
         </TouchableOpacity>

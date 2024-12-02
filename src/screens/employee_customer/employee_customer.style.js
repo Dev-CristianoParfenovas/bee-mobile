@@ -21,7 +21,8 @@ export const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: FONT_SIZE.xl,
     textAlign: "center",
-    marginTop: 35,
+    marginTop: 45,
+    fontWeight: "bold",
   },
   watermark: {
     position: "absolute",
@@ -74,5 +75,25 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 25,
     padding: 15,
+  },
+
+  customerCard: {
+    padding: 15,
+    backgroundColor: COLORS.gray5,
+    borderRadius: 10,
+    marginBottom: 10,
+    elevation: 2,
+  },
+  selectedCustomerCard: {
+    borderColor: COLORS.bluebtn,
+    borderWidth: 2,
+  },
+  customerName: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  customerPhone: {
+    fontSize: 14,
+    color: COLORS.gray,
   },
 });

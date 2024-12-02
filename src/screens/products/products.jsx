@@ -10,9 +10,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./products.style.js";
 import { products } from "../../constants/dados.js";
+import { useNavigation } from "@react-navigation/native";
 
 function Products(props) {
   const [cartCount, setCartCount] = useState(0); // Contador do carrinho
+
+  const navigation = useNavigation(); // Hook para acessar a navegação
 
   // Função para quando o item for clicado
   const handlePress = (item) => {
@@ -39,6 +42,12 @@ function Products(props) {
       {/* Banner no topo */}
       <View style={styles.banner}>
         <View style={styles.containerbanner}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back-outline" size={30} color="white" />
+          </TouchableOpacity>
           <Text style={styles.text}>Produtos</Text>
 
           {/* Botão do Carrinho com Indicador */}
