@@ -130,6 +130,8 @@ function Account(props) {
               value={email}
               onChangeText={(text) => setEmail(text)}
               style={[styles.input, errors.email ? styles.inputError : null]}
+              autoCapitalize="none" // Começa com letra minúscula
+              keyboardType="email-address" // Teclado específico para e-mail
             />
           </View>
           {errors.email ? (

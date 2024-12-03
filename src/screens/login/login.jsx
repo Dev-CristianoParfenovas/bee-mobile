@@ -8,20 +8,37 @@ import { validateForm } from "../../utils/validators.js";
 import { COLORS } from "../../constants/theme.js";
 import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
+import api from "../../constants/api.js";
 
 function Login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    // Validação do formulário
     const formErrors = validateForm({ email, password });
     setErrors(formErrors);
 
-    if (!formErrors.email && !formErrors.password) {
-      Alert.alert("Login bem-sucedido!", `Bem-vindo, ${email}`);
-    } else {
+    // Verificar se há erros de validação
+    if (formErrors.email || formErrors.password) {
       Alert.alert("Erro", "Por favor, corrija os erros antes de continuar.");
+      return;
+    }
+
+    try {
+      // Enviar dados de login para a API
+      const response = await api.post("/employee/login", { email, password });
+
+      // Exibir dados da resposta (opcional)
+      console.log("Login bem-sucedido:", response.data);
+      Alert.alert("Login bem-sucedido!", `Bem-vindo, ${email}`);
+    } catch (error) {
+      // Tratar erros da requisição
+      const errorMessage =
+        error.response?.data?.error ||
+        "Ocorreu um erro ao fazer login, verifique email e senha!";
+      Alert.alert("Erro", errorMessage);
     }
   };
 
@@ -48,6 +65,8 @@ function Login(props) {
               value={email}
               onChangeText={(text) => setEmail(text)}
               style={[styles.input, errors.email ? styles.inputError : null]}
+              autoCapitalize="none" // Começa com letra minúscula
+              keyboardType="email-address" // Teclado específico para e-mail
             />
           </View>
           {errors.email ? (
@@ -65,6 +84,8 @@ function Login(props) {
               value={password}
               onChangeText={(text) => setPassword(text)}
               style={[styles.input, errors.password ? styles.inputError : null]}
+              autoCapitalize="none" // Evita capitalização
+              keyboardType="default"
             />
           </View>
           {errors.password ? (
