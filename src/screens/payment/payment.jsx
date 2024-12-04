@@ -41,7 +41,7 @@ const Payment = () => {
       <View style={styles.banner}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButton}
+          // style={styles.backButton}
         >
           <Ionicons name="arrow-back-outline" size={30} color="white" />
         </TouchableOpacity>

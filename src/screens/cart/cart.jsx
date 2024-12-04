@@ -73,7 +73,7 @@ function Cart(props) {
         <View style={styles.containerbanner}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={styles.backButton}
+            // style={styles.backButton}
           >
             <Ionicons name="arrow-back-outline" size={30} color="white" />
           </TouchableOpacity>

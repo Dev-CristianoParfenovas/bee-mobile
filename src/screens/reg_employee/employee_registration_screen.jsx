@@ -1,35 +1,26 @@
 import { useState } from "react";
-import {
-  Image,
-  TextInput,
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  Switch,
-} from "react-native";
+import { Image, View, Text, Alert } from "react-native";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
 import icons from "../../constants/icons.js";
-import { styles } from "./account.style.js";
+import { styles } from "./employee_registration_screen.js";
 import Button from "../../components/button/button.jsx";
 import {
   validateEmail,
   validatePassword,
   validateName,
-  validateForm,
 } from "../../utils/validators.js";
 import { COLORS } from "../../constants/theme.js";
 import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
 import { useNavigation } from "@react-navigation/native";
 
-function Account(props) {
+function EmployeeRegistrationScreen(props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ name: "", email: "", password: "" });
   const [isAdmin, setIsAdmin] = useState(false); // Estado para administrador
-  const navigation = useNavigation(); // Hook para acessar a navegação
+  // const navigation = useNavigation(); // Hook para acessar a navegação
 
   const handleCreateAccount = () => {
     // Realiza validação dos campos
@@ -50,29 +41,6 @@ function Account(props) {
     }
   };
 
-  // Alterna o status de administrador
-  const handleSwitchChange = (value) => {
-    if (value) {
-      Alert.alert(
-        "Confirmação",
-        "Você está se cadastrando como Administrador. Deseja continuar?",
-        [
-          {
-            text: "Cancelar",
-            onPress: () => setIsAdmin(false),
-            style: "cancel",
-          },
-          {
-            text: "Confirmar",
-            onPress: () => setIsAdmin(true),
-          },
-        ]
-      );
-    } else {
-      setIsAdmin(false);
-    }
-  };
-
   return (
     <View style={styles.container}>
       {/* Marca d'água */}
@@ -87,24 +55,6 @@ function Account(props) {
       </View>
 
       <View>
-        {/* Administrador Switch */}
-        <View style={styles.containerSwitch}>
-          <Text style={styles.switchLabel}>Administrador:</Text>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => handleSwitchChange(!isAdmin)}
-            style={styles.touchableArea}
-          >
-            <Switch
-              value={isAdmin}
-              onValueChange={handleSwitchChange}
-              trackColor={{ false: COLORS.gray3, true: COLORS.primary }}
-              thumbColor={isAdmin ? COLORS.secondary : COLORS.lightGray}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            />
-          </TouchableOpacity>
-        </View>
-
         {/* Campo Nome */}
         <View style={styles.containerInput}>
           <View style={styles.inputWithIcon}>
@@ -159,14 +109,8 @@ function Account(props) {
 
         <Button text="Criar Conta" onPress={handleCreateAccount} />
       </View>
-      <View style={styles.footer}>
-        <Text style={styles.textfooter}>Já tenho conta. </Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.footerLink}>Fazer login</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
 
-export default Account;
+export default EmployeeRegistrationScreen;
