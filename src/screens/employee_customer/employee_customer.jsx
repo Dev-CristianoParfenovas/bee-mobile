@@ -97,7 +97,7 @@ function EmployeeCustomer(props) {
         <Button
           text="Acessar vendas"
           onPress={() =>
-            props.navigation.navigate("products", {
+            props.navigation.navigate("Produtos", {
               employee,
               customer: selectedCustomer,
             })

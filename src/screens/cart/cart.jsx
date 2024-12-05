@@ -153,7 +153,7 @@ function Cart(props) {
         <View>
           <ButtonPayment
             text="Pagamento"
-            onPress={() => props.navigation.navigate("payment")}
+            onPress={() => props.navigation.navigate("Pagamento")}
           />
         </View>
       </View>

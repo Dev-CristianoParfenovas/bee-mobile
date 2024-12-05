@@ -9,32 +9,47 @@ import { COLORS } from "../../constants/theme.js";
 import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
 import api from "../../constants/api.js";
+import { useUser } from "../../context/UserContext";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useNavigation } from "@react-navigation/native";
 
 function Login(props) {
+  const { setIsAuthenticated } = useAuth(); // Atualiza o estado de autenticação
+  const { login } = useUser(); // Contexto do usuário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
 
+  const navigation = useNavigation(); // Obtém o objeto de navegação
+
   const handleLogin = async () => {
-    // Validação do formulário
     const formErrors = validateForm({ email, password });
     setErrors(formErrors);
 
-    // Verificar se há erros de validação
     if (formErrors.email || formErrors.password) {
       Alert.alert("Erro", "Por favor, corrija os erros antes de continuar.");
       return;
     }
 
     try {
-      // Enviar dados de login para a API
       const response = await api.post("/employee/login", { email, password });
 
-      // Exibir dados da resposta (opcional)
       console.log("Login bem-sucedido:", response.data);
-      Alert.alert("Login bem-sucedido!", `Bem-vindo, ${email}`);
+      Alert.alert(
+        "Login bem-sucedido!",
+        `Bem-vindo, ${response.data.employee.name}`
+      );
+
+      // Atualiza os estados globais
+      setIsAuthenticated(true); // Atualiza o estado de autenticação
+      login(response.data.employee); // Salva os dados completos do usuário no contexto
+      // Aqui, você deve garantir que o papel do usuário (role) também seja atualizado no contexto
+      const userRole = response.data.employee.role; // Supondo que o papel seja retornado com o login
+      setUserRole(userRole); // Atualize o papel do usuário
+
+      // Navega para a tela do Drawer
+      // navigation.navigate("DrawerScreen"); // Redireciona para a tela de Drawer
     } catch (error) {
-      // Tratar erros da requisição
       const errorMessage =
         error.response?.data?.error ||
         "Ocorreu um erro ao fazer login, verifique email e senha!";

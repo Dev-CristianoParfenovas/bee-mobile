@@ -11,9 +11,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./products.style.js";
 import { products } from "../../constants/dados.js";
 import { useNavigation } from "@react-navigation/native";
+import TextBox from "../../components/textbox/textbox.jsx";
 
 function Products(props) {
   const [cartCount, setCartCount] = useState(0); // Contador do carrinho
+  const [searchText, setSearchText] = useState(""); //Para pesquisa de produtos
 
   const navigation = useNavigation(); // Hook para acessar a navegação
 
@@ -22,13 +24,22 @@ function Products(props) {
     Alert.alert("Produto", `Você clicou no produto: ${item.name}`);
   };
 
+  // Função para atualizar os produtos com base na pesquisa
+  const handleSearch = (text) => {
+    setSearchText(text);
+    const filtered = products.filter((item) =>
+      item.name.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  };
+
   // Função para adicionar ao carrinho
   const addToCart = (item) => {
     setCartCount(cartCount + 1);
     Alert.alert("Carrinho", `${item.name} foi adicionado ao carrinho!`, [
       {
         text: "Ir para o carrinho",
-        onPress: () => props.navigation.navigate("cart"),
+        onPress: () => props.navigation.navigate("Carrinho"),
       },
       {
         text: "Continuar comprando",
@@ -66,6 +77,22 @@ function Products(props) {
           </View>
         </View>
         <Text style={styles.subtitle}>Explore nossos itens exclusivos</Text>
+      </View>
+
+      {/* Campo de Pesquisa */}
+      <View style={styles.searchContainer}>
+        <Ionicons
+          name="search"
+          size={20}
+          color="#888"
+          style={styles.searchIcon}
+        />
+        <TextBox
+          style={styles.searchInput}
+          placeholder="Buscar produtos..."
+          value={searchText}
+          onChangeText={handleSearch}
+        />
       </View>
 
       {/* Lista de Produtos */}

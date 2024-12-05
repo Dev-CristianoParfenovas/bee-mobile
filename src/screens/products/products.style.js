@@ -110,4 +110,23 @@ export const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     marginLeft: 8,
   },
+
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.gray5,
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginVertical: 10,
+    padding: 10,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 35,
+    fontSize: FONT_SIZE.md,
+    color: "#333",
+  },
 });

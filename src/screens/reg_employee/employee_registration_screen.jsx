@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, View, Text, Alert } from "react-native";
+import { Image, View, Text, Alert, TouchableOpacity } from "react-native";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
 import icons from "../../constants/icons.js";
 import { styles } from "./employee_registration_screen.js";
@@ -20,7 +20,7 @@ function EmployeeRegistrationScreen(props) {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ name: "", email: "", password: "" });
   const [isAdmin, setIsAdmin] = useState(false); // Estado para administrador
-  // const navigation = useNavigation(); // Hook para acessar a navegação
+  const navigation = useNavigation(); // Hook para acessar a navegação
 
   const handleCreateAccount = () => {
     // Realiza validação dos campos
@@ -43,6 +43,14 @@ function EmployeeRegistrationScreen(props) {
 
   return (
     <View style={styles.container}>
+      {/* Botão Voltar */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <MaterialIcons name="arrow-back" size={24} color={COLORS.white} />
+        <Text style={styles.backButtonText}>Voltar</Text>
+      </TouchableOpacity>
       {/* Marca d'água */}
       <Image
         source={images.beelogin}
@@ -50,6 +58,7 @@ function EmployeeRegistrationScreen(props) {
         resizeMode="contain"
         opacity={0.1} // Ajuste para o efeito de marca d'água
       />
+
       <View style={styles.containerlogo}>
         <Image source={icons.logobee} style={styles.beelogin} />
       </View>

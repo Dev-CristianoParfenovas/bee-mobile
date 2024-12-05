@@ -9,11 +9,13 @@ export const styles = StyleSheet.create({
   containerlogo: {
     alignItems: "center",
     paddingTop: 55,
+    paddingBottom: 35,
   },
   container: {
     flex: 1,
-    justifyContent: "space-between",
-    padding: 20,
+    paddingTop: 55,
+    justifyContent: "flex-start", // Alinha os elementos no topo
+    paddingHorizontal: 20,
     backgroundColor: COLORS.blueprincipal,
   },
   watermark: {
@@ -26,13 +28,14 @@ export const styles = StyleSheet.create({
 
   containerInput: {
     marginBottom: 20,
+    justifyContent: "center",
   },
   inputWithIcon: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 15, // Deixa o container arredondado
+    borderRadius: 15,
     backgroundColor: COLORS.white,
     paddingHorizontal: 10,
     height: 50,
@@ -40,8 +43,8 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   input: {
-    flex: 1, // Faz o TextInput ocupar o restante do espaço
-    marginLeft: 10, // Espaço entre o ícone e o campo
+    flex: 1,
+    marginLeft: 10,
     color: COLORS.white,
     fontSize: FONT_SIZE.md,
   },
@@ -58,33 +61,17 @@ export const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: FONT_SIZE.xl,
   },
-  footer: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
+  backButton: {
     flexDirection: "row",
-    bottom: 0,
+    alignItems: "center",
+    position: "absolute",
+    top: 40,
+    left: 10,
+    padding: 10,
   },
-  textfooter: {
+  backButtonText: {
     color: COLORS.white,
-  },
-  footerLink: {
-    color: COLORS.yellowbee,
-    paddingLeft: 2,
-  },
-  containerSwitch: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10, // Expande a área clicável verticalmente
-    paddingHorizontal: 5, // Expande horizontalmente
-  },
-  switchLabel: {
     fontSize: 16,
-    color: COLORS.white,
-    marginRight: 25, // Espaço entre o texto e o switch
-  },
-  touchableArea: {
-    padding: 5, // Expande a área clicável ao redor do Switch
-    borderRadius: 10, // Suaviza os cantos (opcional)
+    marginLeft: 5,
   },
 });
