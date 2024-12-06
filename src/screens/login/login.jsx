@@ -11,7 +11,6 @@ import images from "../../constants/icons.js";
 import api from "../../constants/api.js";
 import { useUser } from "../../context/UserContext";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { useNavigation } from "@react-navigation/native";
 
 function Login(props) {
   const { setIsAuthenticated } = useAuth(); // Atualiza o estado de autenticação
@@ -19,8 +18,9 @@ function Login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
+  const [userRole, setUserRole] = useState(true);
 
-  const navigation = useNavigation(); // Obtém o objeto de navegação
+  // const navigation = useNavigation(); // Obtém o objeto de navegação
 
   const handleLogin = async () => {
     const formErrors = validateForm({ email, password });
@@ -44,7 +44,8 @@ function Login(props) {
       setIsAuthenticated(true); // Atualiza o estado de autenticação
       login(response.data.employee); // Salva os dados completos do usuário no contexto
       // Aqui, você deve garantir que o papel do usuário (role) também seja atualizado no contexto
-      const userRole = response.data.employee.role; // Supondo que o papel seja retornado com o login
+      const userRole = response.data.employee.is_admin === true; // Supondo que o papel seja retornado com o login
+      console.log("userRole no RoutesAuth:", userRole);
       setUserRole(userRole); // Atualize o papel do usuário
 
       // Navega para a tela do Drawer

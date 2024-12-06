@@ -69,7 +69,7 @@ function RoutesAuth() {
         />
 
         {/* Rotas exclusivas para administrador */}
-        {userRole === "admin" && (
+        {userRole === true && (
           <>
             <Drawer.Screen
               name="Cadastrar Funcionários"
@@ -136,7 +136,7 @@ function RoutesAuth() {
         )}
 
         {/* Rotas exclusivas para funcionário */}
-        {userRole === "employee" && (
+        {userRole === false && (
           <>
             <Drawer.Screen
               name="Funcionário / Vendas"

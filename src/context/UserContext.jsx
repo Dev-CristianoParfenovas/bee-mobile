@@ -4,11 +4,11 @@ const UserContext = createContext();
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null); // Armazena os dados completos do usuário
-  const [userRole, setUserRole] = useState(null); // Armazena o papel do usuário (admin, employee)
+  const [userRole, setUserRole] = useState(true); // Armazena o papel do usuário (admin, employee)
 
   const login = (userData) => {
     setUser(userData);
-    setUserRole(userData.role); // Define o papel do usuário no contexto
+    setUserRole(userData.is_admin); // Define o papel do usuário no contexto
   };
 
   const logout = () => {
