@@ -10,11 +10,12 @@ function AppContent() {
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // Simula a autenticação; substitua pela lógica real
-      setIsAuthenticated(false); // Altere para false para simular logout
+      const token = await AsyncStorage.getItem("authToken");
+      setIsAuthenticated(!!token); // Define como autenticado se o token existir
     };
+
     checkAuthStatus();
-  }, []);
+  }, [setIsAuthenticated]);
 
   return isAuthenticated ? <RoutesAuth /> : <Routes />;
 }
@@ -23,7 +24,6 @@ export default function App() {
   return (
     <AuthProvider>
       <UserProvider>
-        {/* Envolva com o UserProvider também */}
         <AppContent />
       </UserProvider>
     </AuthProvider>

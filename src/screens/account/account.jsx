@@ -16,35 +16,89 @@ import {
   validateEmail,
   validatePassword,
   validateName,
-  validateForm,
 } from "../../utils/validators.js";
 import { COLORS } from "../../constants/theme.js";
 import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
 import { useNavigation } from "@react-navigation/native";
+import api from "../../constants/api.js";
+import { useAuth } from "../../context/AuthContext";
 
 function Account(props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ name: "", email: "", password: "" });
-  const [isAdmin, setIsAdmin] = useState(false); // Estado para administrador
+  const [isAdmin, setIsAdmin] = useState(true); // Estado para administrador
   const navigation = useNavigation(); // Hook para acessar a navegação
+  const { login } = useAuth(); // Obtendo a função login do contexto
 
-  const handleCreateAccount = () => {
-    // Realiza validação dos campos
+  const handleCreateAccount = async () => {
     const nameError = validateName(name);
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
     setErrors({ name: nameError, email: emailError, password: passwordError });
 
-    // Checa se todos os campos estão válidos
     if (!nameError && !emailError && !passwordError) {
-      Alert.alert(
-        "Conta criada com sucesso!",
-        `Bem-vindo, ${name}.\nStatus: ${isAdmin ? "Administrador" : "Usuário"}`
-      );
+      try {
+        console.log("Enviando dados para API:", {
+          name,
+          email,
+          password,
+          is_admin: isAdmin,
+          is_active: true,
+        });
+
+        const response = await api.post("/companyemployee", {
+          name,
+          email,
+          password,
+          is_admin: isAdmin,
+          is_active: true,
+        });
+
+        console.log("Status da resposta:", response.status);
+        console.log("Dados da resposta:", response.data);
+
+        if (response.status === 200 || response.status === 201) {
+          const { token } = response.data;
+
+          if (!token) {
+            console.error("Token não encontrado na resposta da API.");
+            Alert.alert(
+              "Erro",
+              "Conta criada, mas ocorreu um problema ao autenticar automaticamente."
+            );
+            return;
+          }
+
+          Alert.alert(
+            "Conta criada com sucesso!",
+            `Bem-vindo, ${name}.\nStatus: ${
+              isAdmin ? "Administrador" : "Usuário"
+            }`
+          );
+
+          // Autentica o usuário usando o token
+          await login(token);
+        } else {
+          console.error("Resposta inesperada da API:", response);
+          Alert.alert(
+            "Erro",
+            "A API retornou um status inesperado. Por favor, tente novamente."
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Erro ao criar conta:",
+          error.response?.data || error.message
+        );
+        Alert.alert(
+          "Erro",
+          "Não foi possível criar a conta. Por favor, tente novamente."
+        );
+      }
     } else {
       Alert.alert("Erro", "Por favor, corrija os erros antes de continuar.");
     }
