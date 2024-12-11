@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, View, Text } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import EmployeeCustomer from "./screens/employee_customer/employee_customer.jsx";
 import EmployeeRegistrationScreen from "./screens/reg_employee/employee_registration_screen.jsx";
@@ -10,13 +10,16 @@ import Payment from "./screens/payment/payment.jsx";
 import { COLORS } from "./constants/theme.js";
 import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de instalar o react-native-vector-icons
-import { useUser } from "./context/UserContext.jsx"; // Caminho correto
+import { useAuth } from "./context/AuthContext.jsx"; // Caminho correto
 
 const Drawer = createDrawerNavigator();
 
 function RoutesAuth() {
-  const { userRole } = useUser(); // Acessa o papel do usuário (admin ou employee)
+  const { isAdmin, isAuthenticated, userName } = useAuth(); // Acessa o estado `isAdmin` do contexto
 
+  console.log("isAuthenticated:", isAuthenticated);
+  console.log("isAdmin:", isAdmin);
+  console.log("userName:", userName);
   return (
     <NavigationContainer>
       <Drawer.Navigator
@@ -39,20 +42,18 @@ function RoutesAuth() {
             </TouchableOpacity>
           ),
           drawerStyle: {
-            backgroundColor: COLORS.bluedrawer, //"#f5f5f5", // Cor de fundo do menu
+            backgroundColor: COLORS.bluedrawer,
             width: 250,
           },
           drawerItemStyle: {
-            paddingVertical: 12, // Aumenta a área clicável verticalmente
-            marginHorizontal: 0, // Remove margens extras
+            paddingVertical: 12,
           },
           drawerLabelStyle: {
             fontSize: 16,
             fontWeight: "bold",
-            marginLeft: 0,
           },
-          drawerActiveTintColor: COLORS.blueprincipal, // Cor de itens ativos
-          drawerInactiveTintColor: COLORS.blueprincipal, // Cor de itens inativos
+          drawerActiveTintColor: COLORS.blueprincipal,
+          drawerInactiveTintColor: COLORS.blueprincipal,
         })}
       >
         {/* Rota disponível para qualquer usuário */}
@@ -60,16 +61,15 @@ function RoutesAuth() {
           name="DrawerScreen"
           component={DrawerScreen}
           options={{
-            title: "Bem vindo",
+            title: `Olá -  ${userName}`,
             headerStyle: {
-              backgroundColor: COLORS.blueprincipal, // Cor de fundo do cabeçalho
+              backgroundColor: COLORS.blueprincipal,
             },
-            headerTintColor: "#fff", // Cor do texto e ícones no cabeçalho
+            headerTintColor: "#fff",
           }}
         />
-
-        {/* Rotas exclusivas para administrador */}
-        {userRole === true && (
+        {/* Rotas exclusivas para administradores */}
+        {isAuthenticated && isAdmin && (
           <>
             <Drawer.Screen
               name="Cadastrar Funcionários"
@@ -82,11 +82,10 @@ function RoutesAuth() {
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}
-                  /> // Ícone de adicionar pessoa
+                  />
                 ),
               }}
             />
-
             <Drawer.Screen
               name="Produtos"
               component={Products}
@@ -135,8 +134,8 @@ function RoutesAuth() {
           </>
         )}
 
-        {/* Rotas exclusivas para funcionário */}
-        {userRole === false && (
+        {/* Rotas exclusivas para funcionários */}
+        {isAuthenticated && !isAdmin && (
           <>
             <Drawer.Screen
               name="Funcionário / Vendas"
@@ -149,7 +148,7 @@ function RoutesAuth() {
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}
-                  /> // Ícone de adicionar pessoa
+                  />
                 ),
               }}
             />

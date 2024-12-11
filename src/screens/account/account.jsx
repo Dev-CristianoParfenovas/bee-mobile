@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Image,
-  TextInput,
+  ActivityIndicator,
   View,
   Text,
   TouchableOpacity,
@@ -46,7 +46,7 @@ function Account(props) {
           name,
           email,
           password,
-          is_admin: isAdmin,
+          is_admin: true,
           is_active: true,
         });
 
@@ -54,7 +54,7 @@ function Account(props) {
           name,
           email,
           password,
-          is_admin: isAdmin,
+          is_admin: true,
           is_active: true,
         });
 
@@ -62,10 +62,12 @@ function Account(props) {
         console.log("Dados da resposta:", response.data);
 
         if (response.status === 200 || response.status === 201) {
-          const { token } = response.data;
+          const { token, message } = response.data;
+
+          console.log("token:", token);
 
           if (!token) {
-            console.error("Token não encontrado na resposta da API.");
+            console.error("Token ausente na resposta da API:", response.data);
             Alert.alert(
               "Erro",
               "Conta criada, mas ocorreu um problema ao autenticar automaticamente."
@@ -75,13 +77,11 @@ function Account(props) {
 
           Alert.alert(
             "Conta criada com sucesso!",
-            `Bem-vindo, ${name}.\nStatus: ${
-              isAdmin ? "Administrador" : "Usuário"
-            }`
+            message || "Você foi registrado com sucesso."
           );
 
           // Autentica o usuário usando o token
-          await login(token);
+          await login(token, name, true); // Use o `name` inserido no formulário, já que a API não retorna
         } else {
           console.error("Resposta inesperada da API:", response);
           Alert.alert(
@@ -94,10 +94,18 @@ function Account(props) {
           "Erro ao criar conta:",
           error.response?.data || error.message
         );
-        Alert.alert(
-          "Erro",
-          "Não foi possível criar a conta. Por favor, tente novamente."
-        );
+
+        if (error.response) {
+          Alert.alert(
+            "Erro",
+            error.response.data.message || "Erro desconhecido."
+          );
+        } else {
+          Alert.alert(
+            "Erro",
+            "Não foi possível criar a conta. Por favor, tente novamente."
+          );
+        }
       }
     } else {
       Alert.alert("Erro", "Por favor, corrija os erros antes de continuar.");

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Image, View, Text, TouchableOpacity, Alert } from "react-native";
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import icons from "../../constants/icons.js";
 import { styles } from "./login.style.js";
 import Button from "../../components/button/button.jsx";
@@ -9,18 +9,14 @@ import { COLORS } from "../../constants/theme.js";
 import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
 import api from "../../constants/api.js";
-import { useUser } from "../../context/UserContext";
 import { useAuth } from "../../context/AuthContext.jsx";
 
 function Login(props) {
   const { setIsAuthenticated } = useAuth(); // Atualiza o estado de autenticação
-  const { login } = useUser(); // Contexto do usuário
+  const { login } = useAuth(); // Contexto do usuário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
-  const [userRole, setUserRole] = useState(true);
-
-  // const navigation = useNavigation(); // Obtém o objeto de navegação
 
   const handleLogin = async () => {
     const formErrors = validateForm({ email, password });
@@ -34,22 +30,17 @@ function Login(props) {
     try {
       const response = await api.post("/employee/login", { email, password });
 
-      console.log("Login bem-sucedido:", response.data);
-      Alert.alert(
-        "Login bem-sucedido!",
-        `Bem-vindo, ${response.data.employee.name}`
-      );
+      console.log("Resposta da API:", response.data); // Verifique a resposta completa aqui
 
-      // Atualiza os estados globais
-      setIsAuthenticated(true); // Atualiza o estado de autenticação
-      login(response.data.employee); // Salva os dados completos do usuário no contexto
-      // Aqui, você deve garantir que o papel do usuário (role) também seja atualizado no contexto
-      const userRole = response.data.employee.is_admin === true; // Supondo que o papel seja retornado com o login
-      console.log("userRole no RoutesAuth:", userRole);
-      setUserRole(userRole); // Atualize o papel do usuário
+      // Certifique-se de que a resposta tem o token, is_admin e o nome do usuário
+      const { token, employee } = response.data;
 
-      // Navega para a tela do Drawer
-      // navigation.navigate("DrawerScreen"); // Redireciona para a tela de Drawer
+      if (token && employee?.is_admin !== undefined && employee?.name) {
+        await login(token, employee.name, employee.is_admin); // Passa o token, o status de admin e o nome do usuário
+        Alert.alert("Login bem-sucedido!", `Bem-vindo, ${employee.name}`);
+      } else {
+        throw new Error("Dados de login incompletos na resposta da API");
+      }
     } catch (error) {
       const errorMessage =
         error.response?.data?.error ||
@@ -65,7 +56,7 @@ function Login(props) {
         source={images.beelogin}
         style={styles.watermark}
         resizeMode="contain"
-        opacity={0.1} // Ajuste para o efeito de marca d'água
+        opacity={0.1}
       />
       <View style={styles.containerlogo}>
         <Image source={icons.logobee} style={styles.beelogin} />
@@ -79,10 +70,10 @@ function Login(props) {
               placeholder="E-mail"
               isPassword={false}
               value={email}
-              onChangeText={(text) => setEmail(text)}
+              onChangeText={setEmail}
               style={[styles.input, errors.email ? styles.inputError : null]}
-              autoCapitalize="none" // Começa com letra minúscula
-              keyboardType="email-address" // Teclado específico para e-mail
+              autoCapitalize="none"
+              keyboardType="email-address"
             />
           </View>
           {errors.email ? (
@@ -98,10 +89,9 @@ function Login(props) {
               placeholder="Senha"
               isPassword={true}
               value={password}
-              onChangeText={(text) => setPassword(text)}
+              onChangeText={setPassword}
               style={[styles.input, errors.password ? styles.inputError : null]}
-              autoCapitalize="none" // Evita capitalização
-              keyboardType="default"
+              autoCapitalize="none"
             />
           </View>
           {errors.password ? (
@@ -109,10 +99,11 @@ function Login(props) {
           ) : null}
         </View>
 
+        {/* Botão de Login */}
         <Button text="Acessar" onPress={handleLogin} />
       </View>
       <View style={styles.footer}>
-        <Text style={styles.textfooter}>Não tem conta. </Text>
+        <Text style={styles.textfooter}>Não tem conta? </Text>
         <TouchableOpacity onPress={() => props.navigation.navigate("account")}>
           <Text style={styles.footerLink}>Criar agora</Text>
         </TouchableOpacity>
