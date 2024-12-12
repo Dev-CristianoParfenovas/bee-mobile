@@ -45,7 +45,7 @@ export const styles = StyleSheet.create({
     padding: 15,
     color: COLORS.gray5,
   },
-  pickerContainer: {
+  /* pickerContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 10, // Arredondar as bordas
@@ -53,7 +53,7 @@ export const styles = StyleSheet.create({
     overflow: "hidden", // Garantir que o conteúdo dentro respeite as bordas arredondadas
     width: "100%",
     height: 56,
-  },
+  },*/
   title: {
     fontSize: 16,
     fontWeight: "bold",

@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
   },
   subtitle: {
     color: COLORS.white,
-    fontSize: FONT_SIZE.sm,
+    fontSize: FONT_SIZE.md,
     textAlign: "center",
     marginTop: 32,
   },

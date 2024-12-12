@@ -87,6 +87,21 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
+              name="Funcionário / Vendas"
+              component={EmployeeCustomer}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="person-add"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Produtos"
               component={Products}
               options={{

@@ -12,8 +12,10 @@ import { styles } from "./products.style.js";
 import { products } from "../../constants/dados.js";
 import { useNavigation } from "@react-navigation/native";
 import TextBox from "../../components/textbox/textbox.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function Products(props) {
+  const { userName } = useAuth();
   const [cartCount, setCartCount] = useState(0); // Contador do carrinho
   const [searchText, setSearchText] = useState(""); //Para pesquisa de produtos
 
@@ -59,7 +61,7 @@ function Products(props) {
           >
             <Ionicons name="arrow-back-outline" size={30} color="white" />
           </TouchableOpacity>
-          <Text style={styles.text}>Produtos</Text>
+          <Text style={styles.text}>{userName}</Text>
 
           {/* Botão do Carrinho com Indicador */}
           <View style={styles.cartContainer}>

@@ -12,6 +12,7 @@ import { styles } from "./cart.style.js";
 import { products } from "../../constants/dados.js";
 import ButtonPayment from "../../components/button_payment/button_payment.jsx";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function Cart(props) {
   const [cartItems, setCartItems] = useState(
@@ -19,6 +20,7 @@ function Cart(props) {
   );
 
   const navigation = useNavigation(); // Hook para acessar a navegação
+  const { userName } = useAuth();
 
   // Função para calcular o total de itens no carrinho
   const getCartCount = () =>
@@ -78,7 +80,7 @@ function Cart(props) {
             <Ionicons name="arrow-back-outline" size={30} color="white" />
           </TouchableOpacity>
 
-          <Text style={styles.text}>Carrinho</Text>
+          <Text style={styles.text}>{userName}</Text>
 
           {/* Botão do Carrinho com Badge */}
           <View style={styles.cartIconContainer}>

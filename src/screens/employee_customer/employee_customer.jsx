@@ -7,12 +7,13 @@ import {
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import Button from "../../components/button/button.jsx";
 import { styles } from "./employee_customer.style.js";
 import images from "../../constants/icons.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function EmployeeCustomer(props) {
+  const { userName } = useAuth();
   const [employee, setEmployee] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -39,29 +40,11 @@ function EmployeeCustomer(props) {
       />
       <View style={styles.banner}>
         <View style={styles.containerbanner}>
-          <Text style={styles.text}>Funcionário / Cliente</Text>
+          <Text style={styles.text}>{userName}</Text>
         </View>
       </View>
 
       <View style={styles.containerfunc}>
-        {/* Picker de Funcionário */}
-        <Text style={styles.title}>Funcionário:</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={employee}
-            style={styles.picker}
-            onValueChange={(itemValue) => setEmployee(itemValue)}
-          >
-            <Picker.Item label="Selecione o funcionário" value="" />
-            <Picker.Item label="João" value="João" />
-            <Picker.Item label="Pedro" value="Pedro" />
-            <Picker.Item label="José" value="José" />
-            <Picker.Item label="Carlos" value="Carlos" />
-            <Picker.Item label="Ana" value="Ana" />
-            <Picker.Item label="Márcia" value="Márcia" />
-          </Picker>
-        </View>
-
         {/* Campo de busca */}
         <Text style={styles.title}>Buscar por:</Text>
         <View style={styles.containerInput}>
