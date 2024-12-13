@@ -3,26 +3,32 @@ import { COLORS, FONT_SIZE } from "../../constants/theme.js";
 
 export const styles = StyleSheet.create({
   banner: {
-    height: 110, // Proporção do banner na tela
+    height: 120, // Proporção do banner na tela
     backgroundColor: COLORS.bluebtn,
     justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
   },
   containerbanner: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
   },
 
   text: {
     color: COLORS.white,
     fontSize: FONT_SIZE.xl,
     textAlign: "center",
-    marginTop: 45,
+    marginTop: 55,
     fontWeight: "bold",
+    paddingRight: 125,
   },
   watermark: {
     position: "absolute",
@@ -30,6 +36,9 @@ export const styles = StyleSheet.create({
     height: 350, // Altura desejada para o logo
     alignSelf: "center", // Centraliza horizontalmente
     top: "40%", // Ajusta a posição vertical
+  },
+  backButton: {
+    marginTop: 55,
   },
 
   image: {
@@ -44,6 +53,12 @@ export const styles = StyleSheet.create({
     justifyContent: "flex-start",
     padding: 15,
     color: COLORS.gray5,
+  },
+  containerbanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    top: "10%",
   },
   /* pickerContainer: {
     borderWidth: 1,

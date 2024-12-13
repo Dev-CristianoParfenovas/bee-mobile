@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadUserName = async () => {
-      //await AsyncStorage.clear();
+      await AsyncStorage.clear();
       try {
         const storedName = await AsyncStorage.getItem("userName");
         if (storedName) {
@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadAuthState = async () => {
-      //   await AsyncStorage.clear(); // Isso pode apagar o token e o status, você pode remover essa linha se não precisar limpar sempre
+      await AsyncStorage.clear(); // Isso pode apagar o token e o status, você pode remover essa linha se não precisar limpar sempre
       try {
         const token = await AsyncStorage.getItem("authToken");
         const adminStatus = await AsyncStorage.getItem("isAdmin");

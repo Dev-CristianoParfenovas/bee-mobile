@@ -11,6 +11,7 @@ import { COLORS } from "./constants/theme.js";
 import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de instalar o react-native-vector-icons
 import { useAuth } from "./context/AuthContext.jsx"; // Caminho correto
+import SalesDashboard from "./screens/sales_dashboard/sales_dashboard.jsx";
 
 const Drawer = createDrawerNavigator();
 
@@ -139,6 +140,21 @@ function RoutesAuth() {
                 drawerIcon: ({ color, size }) => (
                   <Icon
                     name="payment"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Painel de Vendas"
+              component={SalesDashboard}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="bar-chart"
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}

@@ -9,14 +9,18 @@ import {
 } from "react-native";
 import Button from "../../components/button/button.jsx";
 import { styles } from "./employee_customer.style.js";
+import { Ionicons } from "@expo/vector-icons";
 import images from "../../constants/icons.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useNavigation } from "@react-navigation/native";
 
 function EmployeeCustomer(props) {
   const { userName } = useAuth();
   const [employee, setEmployee] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  const navigation = useNavigation(); // Hook para acessar a navegação
 
   const customers = [
     { id: "1", name: "Transportes Sinivaldo Express", phone: "123456789" },
@@ -40,6 +44,14 @@ function EmployeeCustomer(props) {
       />
       <View style={styles.banner}>
         <View style={styles.containerbanner}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            // style={styles.backButton}
+          >
+            <Ionicons name="arrow-back-outline" size={30} color="white" />
+          </TouchableOpacity>
+
           <Text style={styles.text}>{userName}</Text>
         </View>
       </View>
