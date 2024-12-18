@@ -12,7 +12,7 @@ import api from "../../constants/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 
 function Login(props) {
-  const { setIsAuthenticated } = useAuth(); // Atualiza o estado de autenticação
+  // const { setIsAuthenticated } = useAuth(); // Atualiza o estado de autenticação
   const { login } = useAuth(); // Contexto do usuário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,23 +28,43 @@ function Login(props) {
     }
 
     try {
+      console.log("Dados enviados para login:", { email, password });
+
       const response = await api.post("/employee/login", { email, password });
 
-      console.log("Resposta da API:", response.data); // Verifique a resposta completa aqui
+      console.log("Resposta da API:", response.data);
 
-      // Certifique-se de que a resposta tem o token, is_admin e o nome do usuário
       const { token, employee } = response.data;
 
-      if (token && employee?.is_admin !== undefined && employee?.name) {
-        await login(token, employee.name, employee.is_admin); // Passa o token, o status de admin e o nome do usuário
+      if (
+        token &&
+        employee?.is_admin !== undefined &&
+        employee?.name &&
+        employee?.companyId !== undefined
+      ) {
+        await login(
+          token,
+          employee.name,
+          employee.companyId, // Passe o companyId correto
+          employee.is_admin
+        );
+
         Alert.alert("Login bem-sucedido!", `Bem-vindo, ${employee.name}`);
       } else {
         throw new Error("Dados de login incompletos na resposta da API");
       }
     } catch (error) {
+      console.error(
+        "Erro ao fazer login:",
+        error.response?.data || error.message
+      );
+
       const errorMessage =
         error.response?.data?.error ||
-        "Ocorreu um erro ao fazer login, verifique email e senha!";
+        error.response?.data?.message ||
+        error.message ||
+        "Ocorreu um erro desconhecido.";
+
       Alert.alert("Erro", errorMessage);
     }
   };

@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false); // Estado de admin como booleano
   const [userName, setUserName] = useState("");
+  const [companyId, setCompanyId] = useState(12345); // Novo estado para company_id
 
   useEffect(() => {
     const loadUserName = async () => {
@@ -27,39 +28,41 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadAuthState = async () => {
-      await AsyncStorage.clear(); // Isso pode apagar o token e o status, você pode remover essa linha se não precisar limpar sempre
       try {
         const token = await AsyncStorage.getItem("authToken");
         const adminStatus = await AsyncStorage.getItem("isAdmin");
+        const storedCompanyId = await AsyncStorage.getItem("companyId");
 
-        console.log("Token carregado:", token);
-        console.log("Admin Status (raw):", adminStatus);
+        console.log("Company ID carregado:", storedCompanyId); // Deve exibir o valor correto
 
         if (token) {
           setIsAuthenticated(true);
-          // Garantir que adminStatus seja tratado como booleano
           setIsAdmin(adminStatus === "true");
+          setCompanyId(storedCompanyId || ""); // Certifica que o estado é atualizado corretamente
         }
       } catch (error) {
         console.error("Erro ao carregar estado de autenticação:", error);
       }
     };
+
     loadAuthState();
   }, []);
 
-  const login = async (token, name, admin = true) => {
+  const login = async (token, name, company_id, admin = true) => {
     try {
-      const adminStatus = admin === true ? true : false; // Garantir que isAdmin seja sempre true
-      await AsyncStorage.setItem("authToken", token);
-      await AsyncStorage.setItem("isAdmin", adminStatus.toString()); // Salva admin como string "true"
-      await AsyncStorage.setItem("userName", name); // Salva o nome do usuário
+      const companyIdToSave = company_id ? company_id.toString() : ""; // Converte para string
 
-      console.log("Token salvo:", token);
-      console.log("Nome do usuário salvo:", name);
+      await AsyncStorage.setItem("authToken", token);
+      await AsyncStorage.setItem("isAdmin", admin.toString());
+      await AsyncStorage.setItem("userName", name);
+      await AsyncStorage.setItem("companyId", companyIdToSave);
+
+      console.log("Company_ID salvo corretamente:", companyIdToSave);
 
       setIsAuthenticated(true);
-      setIsAdmin(adminStatus);
-      setUserName(name); // Atualiza o estado com o nome do usuário
+      setIsAdmin(admin);
+      setUserName(name);
+      setCompanyId(companyIdToSave); // Atualiza o estado corretamente
     } catch (error) {
       console.error("Erro ao salvar dados de login:", error);
     }
@@ -70,8 +73,10 @@ export function AuthProvider({ children }) {
       await AsyncStorage.removeItem("authToken");
       await AsyncStorage.removeItem("isAdmin");
       await AsyncStorage.removeItem("userName"); // Remove o nome do usuário
+      await AsyncStorage.removeItem("companyId");
       setIsAuthenticated(false);
       setIsAdmin(null); // Reseta o estado de admin
+      setCompanyId("");
       setUserName(""); // Limpa o nome do usuário
     } catch (error) {
       console.error("Erro ao remover dados de logout:", error);
@@ -80,7 +85,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isAdmin, userName, login, logout }}
+      value={{ isAuthenticated, isAdmin, userName, companyId, login, logout }}
     >
       {children}
     </AuthContext.Provider>
