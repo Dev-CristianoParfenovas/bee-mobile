@@ -4,7 +4,11 @@ import {
   NavigationContainer,
   useNavigationState,
 } from "@react-navigation/native";
-import { createDrawerNavigator } from "@react-navigation/drawer";
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItemList,
+} from "@react-navigation/drawer";
 import EmployeeCustomer from "./screens/employee_customer/employee_customer.jsx";
 import EmployeeRegistrationScreen from "./screens/reg_employee/employee_registration_screen.jsx";
 import DrawerScreen from "./screens/drawer_screen/drawer_screen.jsx";
@@ -20,32 +24,49 @@ import SalesDashboard from "./screens/sales_dashboard/sales_dashboard.jsx";
 
 const Drawer = createDrawerNavigator();
 
+// Componente personalizado para o conteúdo do menu Drawer
+function CustomDrawerContent(props) {
+  const { userName } = props;
+
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
+      {/* Cabeçalho personalizado */}
+      <View style={{ padding: 20, backgroundColor: "#f4f4f4" }}>
+        <Text style={{ fontSize: 16 }}>Olá</Text>
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 20 }}>
+          {userName}
+        </Text>
+      </View>
+      {/* Renderiza os itens padrão do menu Drawer */}
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
+  );
+}
+
 function RoutesAuth() {
-  const { isAdmin, isAuthenticated, userName, logout } = useAuth(); // Acessa o estado isAdmin do contexto
+  const { isAdmin, isAuthenticated, userName, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    props.navigation.navigate("login"); // Redireciona para a tela de login após o logout
   };
-
-  console.log("isAuthenticated:", isAuthenticated);
-  console.log("isAdmin:", isAdmin);
-  console.log("userName:", userName);
 
   return (
     <NavigationContainer>
       <Drawer.Navigator
         initialRouteName="DrawerScreen"
+        drawerContent={(props) => (
+          <CustomDrawerContent {...props} userName={userName} />
+        )}
         screenOptions={({ navigation }) => ({
           headerStyle: {
-            backgroundColor: COLORS.blueprincipal, // Cor de fundo do cabeçalho
+            backgroundColor: COLORS.blueprincipal,
           },
-          headerTintColor: "#fff", // Cor do texto do cabeçalho
+          headerTintColor: "#fff",
           headerLeft: () => (
             <TouchableOpacity
               onPress={() => navigation.toggleDrawer()}
               style={{
-                padding: 15, // Aumenta a área clicável do botão
+                padding: 15,
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -58,7 +79,7 @@ function RoutesAuth() {
             width: 250,
           },
           drawerItemStyle: {
-            paddingVertical: 12,
+            paddingVertical: 10,
           },
           drawerLabelStyle: {
             fontSize: 16,
@@ -68,15 +89,16 @@ function RoutesAuth() {
           drawerInactiveTintColor: COLORS.blueprincipal,
         })}
       >
-        {/* Rota disponível para qualquer usuário */}
         <Drawer.Screen
           name="DrawerScreen"
           component={DrawerScreen}
           options={{
-            title: `Olá - ${userName}`,
+            title: "Home",
+            drawerLabel: () => null, // Remove o rótulo
+            drawerItemStyle: { height: 0 }, // Remove o espaço ocupado
+            headerShadowVisible: false,
           }}
         />
-        {/* Rotas exclusivas para administradores */}
         {isAuthenticated && isAdmin && (
           <>
             <Drawer.Screen
@@ -95,13 +117,13 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
-              name="Funcionário / Vendas"
+              name="Acessar Clientes"
               component={EmployeeCustomer}
               options={{
                 headerShown: false,
                 drawerIcon: ({ color, size }) => (
                   <Icon
-                    name="person-add"
+                    name="people"
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}
@@ -172,11 +194,10 @@ function RoutesAuth() {
           </>
         )}
 
-        {/* Rotas exclusivas para funcionários */}
         {isAuthenticated && !isAdmin && (
           <>
             <Drawer.Screen
-              name="Funcionário / Vendas"
+              name="Acessar Clientes"
               component={EmployeeCustomer}
               options={{
                 headerShown: false,
@@ -232,44 +253,6 @@ function RoutesAuth() {
                     size={size}
                     style={{ marginLeft: -15 }}
                   />
-                ),
-              }}
-            />
-
-            <Drawer.Screen
-              name="log"
-              // component={() => null} // Não precisa de componente para logout
-              options={{
-                drawerIcon: ({ color, size }) => (
-                  <Icon
-                    name="exit-to-app"
-                    color={color}
-                    size={size}
-                    style={{ marginLeft: -15 }}
-                  />
-                ),
-                // Ao clicar no item, chamamos a função logout
-                drawerLabel: "Sair",
-                drawerLabelStyle: {
-                  fontSize: 16,
-                  fontWeight: "bold",
-                },
-                // Função para realizar o logout
-                headerRight: () => (
-                  <TouchableOpacity
-                    onPress={async () => {
-                      await logout(); // Chama a função logout
-                    }}
-                    style={{
-                      padding: 15,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text style={{ color: "white", fontWeight: "bold" }}>
-                      Sair
-                    </Text>
-                  </TouchableOpacity>
                 ),
               }}
             />

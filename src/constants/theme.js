@@ -20,6 +20,7 @@ const FONT_SIZE = {
   sm: 14,
   md: 16,
   lg: 18,
+  llg: 21,
   xl: 25,
   xxl: 35,
 };

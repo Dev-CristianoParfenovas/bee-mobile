@@ -24,10 +24,11 @@ export const styles = StyleSheet.create({
 
   text: {
     color: COLORS.white,
-    fontSize: FONT_SIZE.xl,
+    fontSize: FONT_SIZE.lg,
     textAlign: "center",
     marginTop: 55,
     fontWeight: "bold",
+    paddingLeft: 35,
     paddingRight: 125,
   },
   watermark: {
