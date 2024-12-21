@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
 
   text: {
     color: COLORS.white,
-    fontSize: FONT_SIZE.lg,
+    fontSize: FONT_SIZE.xl,
     textAlign: "center",
     marginTop: 55,
     fontWeight: "bold",
