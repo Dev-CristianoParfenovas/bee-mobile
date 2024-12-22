@@ -11,11 +11,11 @@ import {
 } from "@react-navigation/drawer";
 import EmployeeCustomer from "./screens/employee_customer/employee_customer.jsx";
 import EmployeeRegistrationScreen from "./screens/reg_employee/employee_registration_screen.jsx";
+import ClientRegistrationScreen from "./screens/reg_clients/client_registration_screen.jsx";
 import DrawerScreen from "./screens/drawer_screen/drawer_screen.jsx";
 import Products from "./screens/products/products.jsx";
 import Cart from "./screens/cart/cart.jsx";
 import Payment from "./screens/payment/payment.jsx";
-import Login from "./screens/login/login.jsx";
 import { COLORS } from "./constants/theme.js";
 import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de instalar o react-native-vector-icons
@@ -99,6 +99,7 @@ function RoutesAuth() {
             headerShadowVisible: false,
           }}
         />
+        {/*Rota do adm*/}
         {isAuthenticated && isAdmin && (
           <>
             <Drawer.Screen
@@ -109,6 +110,21 @@ function RoutesAuth() {
                 drawerIcon: ({ color, size }) => (
                   <Icon
                     name="person-add"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Cadastrar Clientes"
+              component={ClientRegistrationScreen}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="person"
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}

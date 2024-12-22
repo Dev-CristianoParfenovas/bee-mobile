@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
   containerlogo: {
     alignItems: "center",
     paddingTop: 1,
-    paddingBottom: 35,
+    paddingBottom: 20,
   },
   container: {
     flex: 1,
@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
     width: 350, // Largura desejada para o logo
     height: 350, // Altura desejada para o logo
     alignSelf: "center", // Centraliza horizontalmente
-    top: "46%", // Ajusta a posição vertical
+    top: "44%", // Ajusta a posição vertical
   },
 
   containerInput: {
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginTop: 45,
+    marginTop: 36,
     marginBottom: 5,
   },
   headerTitle: {
