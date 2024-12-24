@@ -7,7 +7,7 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false); // Estado de admin como booleano
   const [userName, setUserName] = useState("");
-  const [companyId, setCompanyId] = useState(12345); // Novo estado para company_id
+  const [companyId, setCompanyId] = useState(""); // Novo estado para company_id
 
   useEffect(() => {
     const loadUserName = async () => {

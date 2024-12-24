@@ -10,6 +10,7 @@ import TextBox from "../../components/textbox/textbox.jsx";
 import images from "../../constants/icons.js";
 import api from "../../constants/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function Login(props) {
   // const { setIsAuthenticated } = useAuth(); // Atualiza o estado de autenticação
@@ -22,6 +23,7 @@ function Login(props) {
     const formErrors = validateForm({ email, password });
     setErrors(formErrors);
 
+    // Validação de campos
     if (formErrors.email || formErrors.password) {
       Alert.alert("Erro", "Por favor, corrija os erros antes de continuar.");
       return;
@@ -30,25 +32,40 @@ function Login(props) {
     try {
       console.log("Dados enviados para login:", { email, password });
 
+      // Envia a requisição para login
       const response = await api.post("/employee/login", { email, password });
 
       console.log("Resposta da API:", response.data);
 
+      // Extrai o token e dados do funcionário
       const { token, employee } = response.data;
 
+      // Verifica se a resposta contém os dados necessários
       if (
         token &&
         employee?.is_admin !== undefined &&
         employee?.name &&
         employee?.companyId !== undefined
       ) {
+        // Salva os dados do login no AsyncStorage
+        await AsyncStorage.setItem("userToken", token);
+        await AsyncStorage.setItem("companyId", employee.companyId.toString());
+
+        // Teste para garantir que o AsyncStorage foi salvo corretamente
+        const storedToken = await AsyncStorage.getItem("userToken");
+        const storedCompanyId = await AsyncStorage.getItem("companyId");
+        console.log("Token armazenado:", storedToken);
+        console.log("CompanyId armazenado:", storedCompanyId);
+
+        // Realiza o login (essa parte pode ser ajustada conforme o seu fluxo)
         await login(
           token,
           employee.name,
-          employee.companyId, // Passe o companyId correto
+          employee.companyId,
           employee.is_admin
         );
 
+        // Exibe uma mensagem de sucesso
         Alert.alert("Login bem-sucedido!", `Bem-vindo, ${employee.name}`);
       } else {
         throw new Error("Dados de login incompletos na resposta da API");
@@ -59,6 +76,7 @@ function Login(props) {
         error.response?.data || error.message
       );
 
+      // Exibe mensagem de erro
       const errorMessage =
         error.response?.data?.error ||
         error.response?.data?.message ||

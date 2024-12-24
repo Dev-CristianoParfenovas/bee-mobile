@@ -1,9 +1,6 @@
 import React from "react";
 import { Text, View } from "react-native";
-import {
-  NavigationContainer,
-  useNavigationState,
-} from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -12,6 +9,8 @@ import {
 import EmployeeCustomer from "./screens/employee_customer/employee_customer.jsx";
 import EmployeeRegistrationScreen from "./screens/reg_employee/employee_registration_screen.jsx";
 import ClientRegistrationScreen from "./screens/reg_clients/client_registration_screen.jsx";
+import ProductsRegistrationScreen from "./screens/reg_products/products_registration_screen.jsx";
+import CategoryRegistrationScreen from "./screens/reg_category/category_registration_screen.jsx";
 import DrawerScreen from "./screens/drawer_screen/drawer_screen.jsx";
 import Products from "./screens/products/products.jsx";
 import Cart from "./screens/cart/cart.jsx";
@@ -133,6 +132,36 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
+              name="Cadastrar Produtos"
+              component={ProductsRegistrationScreen}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="inventory"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Cadastrar Categorias"
+              component={CategoryRegistrationScreen}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="category"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Acessar Clientes"
               component={EmployeeCustomer}
               options={{
@@ -148,7 +177,7 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
-              name="Produtos"
+              name="Lista de Produtos"
               component={Products}
               options={{
                 headerShown: false,
@@ -209,7 +238,7 @@ function RoutesAuth() {
             />
           </>
         )}
-
+        {/*Rota para funcionários*/}
         {isAuthenticated && !isAdmin && (
           <>
             <Drawer.Screen
@@ -228,7 +257,7 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
-              name="Produtos"
+              name="Lista de Produtos"
               component={Products}
               options={{
                 headerShown: false,
