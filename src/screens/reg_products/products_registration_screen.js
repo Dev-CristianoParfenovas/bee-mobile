@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
   containerInput: {
     marginBottom: 20,
     justifyContent: "center",
-    padding: 10,
+    padding: 2,
   },
   inputWithIcon: {
     flexDirection: "row",
@@ -107,6 +107,42 @@ export const styles = StyleSheet.create({
 
   picker: {
     height: 56,
+    color: COLORS.black,
+  },
+  textpicker: {
+    fontSize: FONT_SIZE.lg,
+    color: COLORS.white,
+    paddingLeft: 3,
+  },
+
+  productCard: {
+    backgroundColor: COLORS.white,
+    padding: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.black,
+  },
+  productDetails: {
+    fontSize: 14,
     color: COLORS.gray3,
+    marginVertical: 4,
+  },
+  removeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  removeButtonText: {
+    color: COLORS.red,
+    marginLeft: 8,
   },
 });
