@@ -30,10 +30,30 @@ function TextBox(props) {
           keyboardType="phone-pad"
         />
       );
+    } else if (props.maskType === "money") {
+      return (
+        <TextInputMask
+          type="money"
+          options={{
+            precision: 2,
+            separator: ".", // Define o separador decimal
+            delimiter: ".", // Define o delimitador de milhares
+            unit: "", // Remove o prefixo
+            suffixUnit: "", // Remove o sufixo
+          }}
+          style={styles.input}
+          placeholder={props.placeholder}
+          placeholderTextColor={props.placeholderTextColor || COLORS.gray3}
+          value={props.value}
+          onChangeText={props.onChangeText}
+          keyboardType="numeric"
+        />
+      );
     }
     return (
       <TextInput
         style={styles.input}
+        onFocus={props.onFocus}
         placeholder={props.placeholder}
         placeholderTextColor={props.placeholderTextColor || COLORS.gray3}
         secureTextEntry={props.isPassword && isPasswordVisible}

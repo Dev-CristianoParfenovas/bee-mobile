@@ -125,6 +125,13 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
+    width: "100%", // Garante que o TouchableOpacity ocupe toda a largura disponível
+  },
+  buttonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
   },
   productName: {
     fontSize: 16,
@@ -136,13 +143,48 @@ export const styles = StyleSheet.create({
     color: COLORS.gray3,
     marginVertical: 4,
   },
+  productDetailsContainer: {
+    flexDirection: "row", // Alinha ícone e texto horizontalmente
+    alignItems: "center", // Alinha verticalmente o ícone e o texto
+    width: "100%", // Garante que o container ocupe toda a largura disponível
+  },
+  selecionarButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+    // backgroundColor: COLORS.blueprincipal, // Exemplo de cor de fundo
+    borderRadius: 5,
+  },
+  selecionarButtonText: {
+    flexDirection: "row",
+    color: COLORS.black,
+    marginLeft: 8,
+  },
+
+  removeButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end", // Garante que o botão de remover fique à direita
+    alignItems: "center",
+    marginRight: 12, // Ajuste o valor conforme necessário para o espaçamento à direita
+  },
+
   removeButton: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
+    marginLeft: 8, // Espaço entre os botões
+    paddingVertical: 8,
+    paddingHorizontal: 1,
+    //  backgroundColor: COLORS.red, // Exemplo de cor de fundo
+    borderRadius: 5,
   },
+
   removeButtonText: {
     color: COLORS.red,
     marginLeft: 8,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#ccc",
   },
 });
