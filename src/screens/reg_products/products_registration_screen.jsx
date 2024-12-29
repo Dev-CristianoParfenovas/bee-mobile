@@ -9,9 +9,11 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
+import { debounce } from "lodash"; // Para debounce, instale lodash (npm install lodash)
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
 import { styles } from "./products_registration_screen.js";
 import Button from "../../components/button/button.jsx";
+import ButtonSearch from "../../components/button_search/button_search.jsx";
 import { COLORS } from "../../constants/theme.js";
 import api from "../../constants/api.js";
 import { useNavigation } from "@react-navigation/native";
@@ -32,6 +34,7 @@ function ProductsRegistrationScreen() {
   const [userToken, setUserToken] = useState(null);
   const [companyId, setCompanyId] = useState(null);
   const [products, setProducts] = useState([]); // Estado para armazenar os produtos
+  const [productsList, setProductsList] = useState([]); // Estado para armazenar os produtos encontrados
   const navigation = useNavigation();
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -47,6 +50,13 @@ function ProductsRegistrationScreen() {
     } catch (error) {
       Alert.alert("Erro", "Não foi possível carregar as categorias.");
     }
+  };
+
+  //Função para retornar a lista completa de produtos
+  const resetProductsList = async () => {
+    setSearch(""); // Limpa o campo de pesquisa
+    setProductsList([]); // Limpa a lista filtrada
+    fetchProducts(userToken, companyId); // Recarrega a lista completa de produtos
   };
 
   // Função para salvar dados no AsyncStorage
@@ -108,10 +118,21 @@ function ProductsRegistrationScreen() {
       const response = await api.get(`/products/${companyId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Adiciona o produto atualizado na primeira posição
-      //const updatedProduct = response.data.products; // Supondo que a resposta contenha os produtos
-      // setProducts([updatedProduct[0], ...products]);
-      setProducts(response.data);
+
+      console.log("Dados recebidos:", response.data);
+
+      // Verifica se a resposta é um array e coloca o primeiro item (produto mais recente) no topo
+      if (Array.isArray(response.data)) {
+        const updatedProducts = [response.data[0], ...response.data.slice(1)];
+        setProducts(updatedProducts); // Atualiza a lista de produtos
+      } else {
+        // Caso a resposta seja um objeto, verifique o campo de produtos (ajuste conforme necessário)
+        const updatedProducts = [
+          response.data.products[0],
+          ...response.data.products.slice(1),
+        ];
+        setProducts(updatedProducts);
+      }
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
       Alert.alert(
@@ -124,8 +145,48 @@ function ProductsRegistrationScreen() {
     }
   };
 
+  /**const fetchProducts = async (token, companyId) => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/products/${companyId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Dados recebidos:", response.data);
+      setProducts(response.data); // Ajuste conforme o formato da resposta
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message ||
+          "Não foi possível carregar os produtos."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };**/
+
+  /* const fetchProducts = async (token, companyId) => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/products/${companyId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message ||
+          "Não foi possível carregar os produtos."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };*/
+
   // Função para recuperar dados do AsyncStorage
-  const getStoredData = async () => {
+  /* const getStoredData = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
       const companyId = await AsyncStorage.getItem("companyId");
@@ -134,7 +195,7 @@ function ProductsRegistrationScreen() {
       console.error("Erro ao buscar dados no AsyncStorage:", error.message);
       return { token: null, companyId: null };
     }
-  };
+  };*/
 
   // Função de inicialização
   useEffect(() => {
@@ -162,8 +223,10 @@ function ProductsRegistrationScreen() {
     initialize();
   }, []);
 
-  // Função de pesquisa de produto
-  const handleSearchProduct = async () => {
+  // Função para buscar produtos com debounce
+  const handleSearchProduct = debounce(async () => {
+    if (!search.trim()) return; // Não faz a requisição se a busca estiver vazia
+
     try {
       const response = await api.get(
         `/products/${companyId}?search=${search}`,
@@ -171,21 +234,16 @@ function ProductsRegistrationScreen() {
           headers: { Authorization: `Bearer ${userToken}` },
         }
       );
-      const product = response.data.product;
 
-      if (product) {
-        setName(product.name);
-        setPrice(product.price.toString().replace(".", ","));
-        setQuantity(product.stock.toString());
-        setSelectedCategory(product.categoryId);
-        setSelectedProductId(product.id);
+      console.log("Resposta da API: ", response.data);
+
+      const products = response.data; // Verifique se os produtos estão diretamente no `response.data`
+
+      if (products && products.length > 0) {
+        setProducts(products); // Atualiza a lista de produtos
       } else {
+        setProducts([]); // Se não encontrar produtos, limpa a lista
         Alert.alert("Produto não encontrado.");
-        setName("");
-        setPrice("");
-        setQuantity("");
-        setSelectedCategory("");
-        setSelectedProductId(null);
       }
     } catch (error) {
       Alert.alert(
@@ -193,11 +251,85 @@ function ProductsRegistrationScreen() {
         error.response?.data?.message || "Falha ao buscar o produto."
       );
     }
+  }, 500); // Debounce de 500ms
+
+  // Atualiza o estado de pesquisa conforme o usuário digita
+  const handleChangeSearch = (text) => {
+    setSearch(text);
+    handleSearchProduct(); // Chama a função de busca com debounce
   };
 
   // Função de cadastro de produto
 
   const handleCreateProduct = async () => {
+    if (!name || !price || !quantity || !selectedCategory) {
+      Alert.alert("Erro", "Todos os campos devem ser preenchidos.");
+      return;
+    }
+
+    if (isNaN(Number(price)) || isNaN(Number(quantity))) {
+      Alert.alert("Erro", "Preço e quantidade devem ser números válidos.");
+      return;
+    }
+
+    if (!companyId) {
+      Alert.alert("Erro", "ID da empresa não está definido.");
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        Alert.alert("Erro", "Token não encontrado. Faça login novamente.");
+        return;
+      }
+
+      const formattedPrice = parseFloat(price.replace(",", "."));
+      const formattedQuantity = Number(quantity);
+
+      const payload = {
+        id: selectedProductId || null, // Se não houver ID, será enviado `null`
+        name,
+        price: formattedPrice,
+        stock: formattedQuantity,
+        category_id: selectedCategory,
+        company_id: companyId,
+      };
+
+      const response = await api.post("/products", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Resposta completa da API:", response.data);
+      Alert.alert("Sucesso", response.data.message);
+
+      // Atualiza a lista de produtos após a criação
+
+      fetchProducts(token, companyId); // Forçar nova requisição para buscar todos os produtos
+      // Atualizando a lista de produtos
+      /* setProducts((prevProducts) => {
+        // Se o produto já existir na lista, substituímos
+        const updatedProducts = prevProducts.filter((item) => item.id !== id);
+        return [id, ...updatedProducts];
+      });*/
+      // Limpa os campos após sucesso
+      setSelectedProductId(null);
+      setName("");
+      setPrice("");
+      setQuantity("");
+      setSelectedCategory("");
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        "Não foi possível cadastrar o produto.";
+      Alert.alert("Erro", errorMessage);
+    }
+  };
+
+  /*const handleCreateProduct = async () => {
     if (!name || !price || !quantity || !selectedCategory) {
       Alert.alert("Erro", "Todos os campos devem ser preenchidos.");
       return;
@@ -257,7 +389,7 @@ function ProductsRegistrationScreen() {
         "Não foi possível cadastrar o produto.";
       Alert.alert("Erro", errorMessage);
     }
-  };
+  };*/
 
   // Função confirmRemove
   const confirmRemove = (productId) => {
@@ -302,7 +434,7 @@ function ProductsRegistrationScreen() {
 
       if (response.status === 200) {
         Alert.alert("Sucesso", response.data.message);
-        fetchProducts(token, companyId); // Atualiza a lista de produtos
+        fetchProducts(token, companyId); // Forçar nova requisição para buscar todos os produtos
       } else {
         throw new Error("Erro ao excluir produto");
       }
@@ -314,6 +446,44 @@ function ProductsRegistrationScreen() {
       );
     }
   };
+
+  /* const handleRemoveProduct = async (productId) => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        Alert.alert("Erro", "Token não encontrado. Faça login novamente.");
+        return;
+      }
+
+      const companyId = await AsyncStorage.getItem("companyId");
+      if (!companyId) {
+        Alert.alert("Erro", "ID da empresa não encontrado.");
+        return;
+      }
+
+      const response = await api.delete(
+        `/products/${productId}?companyId=${companyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        Alert.alert("Sucesso", response.data.message);
+        fetchProducts(token, companyId); // Atualiza a lista de produtos
+      } else {
+        throw new Error("Erro ao excluir produto");
+      }
+    } catch (error) {
+      console.error("Erro ao remover produto:", error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível remover o produto. Tente novamente."
+      );
+    }
+  };*/
 
   return (
     <View style={styles.container}>
@@ -342,7 +512,10 @@ function ProductsRegistrationScreen() {
             style={styles.input}
           />
         </View>
-        <Button text="Buscar" onPress={handleSearchProduct} />
+        <View style={styles.containerbtnSearch}>
+          <ButtonSearch text="Buscar" onPress={handleChangeSearch} />
+          <ButtonSearch text="Voltar lista" onPress={resetProductsList} />
+        </View>
       </View>
 
       {/* Picker de Categorias */}
@@ -417,7 +590,9 @@ function ProductsRegistrationScreen() {
       ) : (
         <FlatList
           data={products}
-          keyExtractor={(item) => (item ? item.id.toString() : "")} // Verificação de 'item'
+          keyExtractor={(item, index) =>
+            item.id?.toString() || index.toString()
+          } // Verificação de 'item'
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             // Verificação adicional para garantir que o item existe

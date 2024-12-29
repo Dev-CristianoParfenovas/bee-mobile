@@ -187,4 +187,9 @@ export const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "#ccc",
   },
+  containerbtnSearch: {
+    flexDirection: "row",
+    justifyContent: "space-between", // Isso distribui os botões com o máximo de espaço entre eles
+    width: "100%", // Garantir que o container ocupe toda a largura disponível
+  },
 });
