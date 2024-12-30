@@ -101,7 +101,7 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   selectedCustomerCard: {
-    borderColor: COLORS.bluebtn,
+    borderColor: COLORS.gray5,
     borderWidth: 2,
   },
   customerName: {
@@ -110,6 +110,6 @@ export const styles = StyleSheet.create({
   },
   customerPhone: {
     fontSize: 14,
-    color: COLORS.gray,
+    color: COLORS.gray1,
   },
 });

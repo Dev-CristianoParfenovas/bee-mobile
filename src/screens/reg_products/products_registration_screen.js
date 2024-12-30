@@ -192,4 +192,21 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between", // Isso distribui os botões com o máximo de espaço entre eles
     width: "100%", // Garantir que o container ocupe toda a largura disponível
   },
+
+  imagePickerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 15,
+  },
+  imageButton: {
+    backgroundColor: COLORS.bluebtn,
+    padding: 10,
+    borderRadius: 5,
+  },
+  imagePreview: {
+    width: 200,
+    height: 200,
+    marginTop: 20,
+    borderRadius: 10,
+  },
 });

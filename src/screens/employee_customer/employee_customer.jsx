@@ -15,6 +15,7 @@ import images from "../../constants/icons.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useNavigation } from "@react-navigation/native";
 import api from "../../constants/api.js";
+import { useFocusEffect } from "@react-navigation/native";
 
 function EmployeeCustomer(props) {
   const { userName } = useAuth();
@@ -65,9 +66,15 @@ function EmployeeCustomer(props) {
   };
 
   // useEffect para carregar os clientes ao montar o componente
-  useEffect(() => {
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchCustomers();
+    }, [])
+  );
+
+  /* useEffect(() => {
     fetchCustomers();
-  }, []);
+  }, []);*/
 
   // Filtra clientes com base na busca
   const filteredCustomers = customers.filter((customer) =>
@@ -126,6 +133,7 @@ function EmployeeCustomer(props) {
                 keyExtractor={(item, index) =>
                   item.id ? item.id.toString() : index.toString()
                 } // Usando id ou índice
+                showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={[
@@ -150,7 +158,7 @@ function EmployeeCustomer(props) {
         <Button
           text="Acessar vendas"
           onPress={() =>
-            props.navigation.navigate("Produtos", {
+            props.navigation.navigate("Lista de Produtos", {
               employee,
               customer: selectedCustomer,
             })

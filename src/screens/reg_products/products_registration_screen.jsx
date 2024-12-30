@@ -22,6 +22,7 @@ import { Picker } from "@react-native-picker/picker";
 import getStoredData from "../../utils/getStoredData"; // Importa o utilitário de AsyncStorage
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import TextBox from "../../components/textbox/textbox.jsx";
+import * as ImagePicker from "expo-image-picker"; // Importa o ImagePicker
 
 function ProductsRegistrationScreen() {
   const [name, setName] = useState("");
@@ -38,6 +39,7 @@ function ProductsRegistrationScreen() {
   const navigation = useNavigation();
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [imageUri, setImageUri] = useState(null);
 
   // Função para buscar categorias
   const fetchCategories = async (token, companyId) => {
@@ -86,32 +88,6 @@ function ProductsRegistrationScreen() {
 
   // Função para buscar produtos
 
-  /* const fetchProducts = async (token, companyId) => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/products/${companyId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Verifique a estrutura da resposta da API
-      console.log(response.data); // Verifique o que está sendo retornado
-
-      const updatedProducts = response.data?.products || []; // Garantir que 'products' seja um array, mesmo que undefined
-      console.log(updatedProducts); // Verifique se o array de produtos está sendo atualizado corretamente
-
-      setProducts(updatedProducts); // Atualiza a lista com os novos produtos
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-      Alert.alert(
-        "Erro",
-        error.response?.data?.message ||
-          "Não foi possível carregar os produtos."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };*/
-
   const fetchProducts = async (token, companyId) => {
     setLoading(true);
     try {
@@ -145,57 +121,49 @@ function ProductsRegistrationScreen() {
     }
   };
 
-  /**const fetchProducts = async (token, companyId) => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/products/${companyId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      console.log("Dados recebidos:", response.data);
-      setProducts(response.data); // Ajuste conforme o formato da resposta
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
+  // Função para capturar imagem da câmera
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
       Alert.alert(
-        "Erro",
-        error.response?.data?.message ||
-          "Não foi possível carregar os produtos."
+        "Permissão necessária",
+        "A permissão para usar a câmera é necessária."
       );
-    } finally {
-      setLoading(false);
+      return;
     }
-  };**/
 
-  /* const fetchProducts = async (token, companyId) => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/products/${companyId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setImageUri(result.uri); // Armazena a URI da imagem tirada
+    }
+  };
+
+  // Função para selecionar uma imagem da galeria
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
       Alert.alert(
-        "Erro",
-        error.response?.data?.message ||
-          "Não foi possível carregar os produtos."
+        "Permissão necessária",
+        "A permissão para acessar a galeria é necessária."
       );
-    } finally {
-      setLoading(false);
+      return;
     }
-  };*/
 
-  // Função para recuperar dados do AsyncStorage
-  /* const getStoredData = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const companyId = await AsyncStorage.getItem("companyId");
-      return { token, companyId };
-    } catch (error) {
-      console.error("Erro ao buscar dados no AsyncStorage:", error.message);
-      return { token: null, companyId: null };
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setImageUri(result.uri); // Armazena a URI da imagem selecionada
     }
-  };*/
+  };
 
   // Função de inicialização
   useEffect(() => {
@@ -260,7 +228,6 @@ function ProductsRegistrationScreen() {
   };
 
   // Função de cadastro de produto
-
   const handleCreateProduct = async () => {
     if (!name || !price || !quantity || !selectedCategory) {
       Alert.alert("Erro", "Todos os campos devem ser preenchidos.");
@@ -296,6 +263,16 @@ function ProductsRegistrationScreen() {
         company_id: companyId,
       };
 
+      if (imageUri) {
+        const uriParts = imageUri.split(".");
+        const fileType = uriParts[uriParts.length - 1];
+        formData.append("image", {
+          uri: imageUri,
+          name: `product_image.${fileType}`,
+          type: `image/${fileType}`,
+        });
+      }
+
       const response = await api.post("/products", payload, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -310,10 +287,10 @@ function ProductsRegistrationScreen() {
       fetchProducts(token, companyId); // Forçar nova requisição para buscar todos os produtos
       // Atualizando a lista de produtos
       /* setProducts((prevProducts) => {
-        // Se o produto já existir na lista, substituímos
-        const updatedProducts = prevProducts.filter((item) => item.id !== id);
-        return [id, ...updatedProducts];
-      });*/
+          // Se o produto já existir na lista, substituímos
+          const updatedProducts = prevProducts.filter((item) => item.id !== id);
+          return [id, ...updatedProducts];
+        });*/
       // Limpa os campos após sucesso
       setSelectedProductId(null);
       setName("");
@@ -328,68 +305,6 @@ function ProductsRegistrationScreen() {
       Alert.alert("Erro", errorMessage);
     }
   };
-
-  /*const handleCreateProduct = async () => {
-    if (!name || !price || !quantity || !selectedCategory) {
-      Alert.alert("Erro", "Todos os campos devem ser preenchidos.");
-      return;
-    }
-
-    if (isNaN(Number(price)) || isNaN(Number(quantity))) {
-      Alert.alert("Erro", "Preço e quantidade devem ser números válidos.");
-      return;
-    }
-
-    if (!companyId) {
-      Alert.alert("Erro", "ID da empresa não está definido.");
-      return;
-    }
-
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      if (!token) {
-        Alert.alert("Erro", "Token não encontrado. Faça login novamente.");
-        return;
-      }
-
-      const formattedPrice = parseFloat(price.replace(",", "."));
-      const formattedQuantity = Number(quantity);
-
-      const payload = {
-        id: selectedProductId || null, // Se não houver ID, será enviado `null`
-        name,
-        price: formattedPrice,
-        stock: formattedQuantity,
-        category_id: selectedCategory,
-        company_id: companyId,
-      };
-
-      const response = await api.post("/products", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      Alert.alert("Sucesso", response.data.message);
-
-      // Limpa os campos após sucesso
-      setSelectedProductId(null);
-      setName("");
-      setPrice("");
-      setQuantity("");
-      setSelectedCategory("");
-
-      // Atualiza a lista de produtos
-      fetchProducts(token, companyId);
-    } catch (error) {
-      console.error("Erro na requisição:", error);
-
-      const errorMessage =
-        error?.response?.data?.message ||
-        "Não foi possível cadastrar o produto.";
-      Alert.alert("Erro", errorMessage);
-    }
-  };*/
 
   // Função confirmRemove
   const confirmRemove = (productId) => {
@@ -408,7 +323,7 @@ function ProductsRegistrationScreen() {
       ]
     );
   };
-
+  //FUNÇÃO REMOVER PRODUTO
   const handleRemoveProduct = async (productId) => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -446,44 +361,6 @@ function ProductsRegistrationScreen() {
       );
     }
   };
-
-  /* const handleRemoveProduct = async (productId) => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      if (!token) {
-        Alert.alert("Erro", "Token não encontrado. Faça login novamente.");
-        return;
-      }
-
-      const companyId = await AsyncStorage.getItem("companyId");
-      if (!companyId) {
-        Alert.alert("Erro", "ID da empresa não encontrado.");
-        return;
-      }
-
-      const response = await api.delete(
-        `/products/${productId}?companyId=${companyId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        Alert.alert("Sucesso", response.data.message);
-        fetchProducts(token, companyId); // Atualiza a lista de produtos
-      } else {
-        throw new Error("Erro ao excluir produto");
-      }
-    } catch (error) {
-      console.error("Erro ao remover produto:", error);
-      Alert.alert(
-        "Erro",
-        "Não foi possível remover o produto. Tente novamente."
-      );
-    }
-  };*/
 
   return (
     <View style={styles.container}>
@@ -538,6 +415,30 @@ function ProductsRegistrationScreen() {
           </Picker>
         </View>
       </View>
+
+      {/* Botão para selecionar imagem */}
+      <View style={styles.imagePickerContainer}>
+        <ButtonSearch
+          text=" Galeria"
+          onPress={pickImage}
+          icon="image" // Passando o ícone de imagem
+          iconColor="#fff" // Cor do ícone, caso queira customizar
+          style={styles.imageButton}
+        />
+
+        <ButtonSearch
+          text=" Tirar Foto"
+          onPress={takePhoto}
+          icon="camera" // Passando o ícone de imagem
+          iconColor="#fff" // Cor do ícone, caso queira customizar
+          style={styles.imageButton}
+        />
+      </View>
+
+      {/* Exibe a imagem selecionada ou capturada */}
+      {imageUri && (
+        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+      )}
 
       {/* Campos Nome, Preço e Estoque */}
       <View style={styles.containerInput}>

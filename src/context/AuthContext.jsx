@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadUserName = async () => {
-      await AsyncStorage.clear();
+      // await AsyncStorage.clear();
       try {
         const storedName = await AsyncStorage.getItem("userName");
         if (storedName) {
@@ -75,7 +75,7 @@ export function AuthProvider({ children }) {
       await AsyncStorage.removeItem("userName"); // Remove o nome do usuário
       await AsyncStorage.removeItem("companyId");
       setIsAuthenticated(false);
-      setIsAdmin(null); // Reseta o estado de admin
+      setIsAdmin(false); // Reseta o estado de admin
       setCompanyId("");
       setUserName(""); // Limpa o nome do usuário
     } catch (error) {
