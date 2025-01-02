@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
   price: {
     fontSize: 16,
     color: COLORS.blueprincipal,
-    fontWeight: "bold",
+    // fontWeight: "bold",
     marginBottom: 10,
   },
   quantityControls: {
@@ -135,7 +135,7 @@ export const styles = StyleSheet.create({
   totalValue: {
     fontSize: 20, // Tamanho maior para destacar o valor
     fontWeight: "bold", // Deixa o valor mais chamativo
-    color: "#007AFF", // Azul para destacar o valor
+    color: COLORS.black, // Azul para destacar o valor
   },
   cartIconContainer: {
     position: "relative",

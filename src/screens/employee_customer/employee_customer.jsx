@@ -147,6 +147,7 @@ function EmployeeCustomer(props) {
                     <Text style={styles.customerPhone}>{item.phone}</Text>
                   </TouchableOpacity>
                 )}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
               />
             )}
           </>

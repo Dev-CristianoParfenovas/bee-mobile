@@ -95,7 +95,7 @@ export const styles = StyleSheet.create({
 
   customerCard: {
     padding: 15,
-    backgroundColor: COLORS.gray5,
+    backgroundColor: COLORS.bluecardcli,
     borderRadius: 10,
     marginBottom: 10,
     elevation: 2,
@@ -110,6 +110,11 @@ export const styles = StyleSheet.create({
   },
   customerPhone: {
     fontSize: 14,
-    color: COLORS.gray1,
+    color: COLORS.gray2,
+  },
+  separator: {
+    height: 1,
+    marginBottom: 8,
+    backgroundColor: "#ccc",
   },
 });

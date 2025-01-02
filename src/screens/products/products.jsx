@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./products.style.js";
@@ -13,13 +14,52 @@ import { products } from "../../constants/dados.js";
 import { useNavigation } from "@react-navigation/native";
 import TextBox from "../../components/textbox/textbox.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import api from "../../constants/api.js";
 
 function Products(props) {
   const { userName } = useAuth();
+  const { authToken, companyId } = useAuth();
   const [cartCount, setCartCount] = useState(0); // Contador do carrinho
   const [searchText, setSearchText] = useState(""); //Para pesquisa de produtos
+  const [loading, setLoading] = useState(false);
+  // const [companyId, setCompanyId] = useState(null);
+  const [products, setProducts] = useState([]); // Estado para armazenar os produtos
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   const navigation = useNavigation(); // Hook para acessar a navegação
+
+  // Função para buscar os produtos da API
+  const fetchProducts = async () => {
+    if (!authToken || !companyId) {
+      console.warn("Token ou Company ID ausente.");
+      return;
+    }
+
+    try {
+      setLoading(true); // Inicia o indicador de carregamento
+      const response = await api.get(`/products/${companyId}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+
+      const productsData = response.data;
+
+      console.log("Produtos recebidos:", productsData);
+
+      // Atualiza o estado com os produtos recebidos
+      setProducts(productsData);
+      setFilteredProducts(productsData); // Inicialmente exibe todos os produtos
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+    } finally {
+      setLoading(false); // Finaliza o indicador de carregamento
+    }
+  };
+
+  useEffect(() => {
+    console.log("Auth Token:", authToken);
+    console.log("Company ID:", companyId);
+    fetchProducts();
+  }, [authToken, companyId]);
 
   // Função para quando o item for clicado
   const handlePress = (item) => {
@@ -99,32 +139,40 @@ function Products(props) {
 
       {/* Lista de Produtos */}
       <View style={styles.containerproducts}>
-        <FlatList
-          data={products}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => handlePress(item)}
-            >
-              <Image source={{ uri: item.image }} style={styles.image} />
-              <View style={styles.details}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={styles.price}>R$ {item.price}</Text>
-                <TouchableOpacity
-                  style={styles.addToCartButton}
-                  onPress={() => addToCart(item)}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color="white" />
-                  <Text style={styles.addToCartText}>Adicionar</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <FlatList
+            data={filteredProducts}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => handlePress(item)}
+              >
+                <Image source={{ uri: item.image }} style={styles.image} />
+                <View style={styles.details}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.price}>R$ {item.price}</Text>
+                  <TouchableOpacity
+                    style={styles.addToCartButton}
+                    onPress={() => addToCart(item)}
+                  >
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={20}
+                      color="white"
+                    />
+                    <Text style={styles.addToCartText}>Adicionar</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        )}
       </View>
     </View>
   );

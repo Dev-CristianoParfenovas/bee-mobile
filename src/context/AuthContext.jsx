@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false); // Estado de admin como booleano
   const [userName, setUserName] = useState("");
   const [companyId, setCompanyId] = useState(""); // Novo estado para company_id
+  const [authToken, setAuthToken] = useState(""); // Adicionei o estado authToken
 
   useEffect(() => {
     const loadUserName = async () => {
@@ -34,11 +35,13 @@ export function AuthProvider({ children }) {
         const storedCompanyId = await AsyncStorage.getItem("companyId");
 
         console.log("Company ID carregado:", storedCompanyId); // Deve exibir o valor correto
+        console.log("Auth Token carregado:", token);
 
         if (token) {
           setIsAuthenticated(true);
           setIsAdmin(adminStatus === "true");
           setCompanyId(storedCompanyId || ""); // Certifica que o estado é atualizado corretamente
+          setAuthToken(token); // Atualiza o estado authToken
         }
       } catch (error) {
         console.error("Erro ao carregar estado de autenticação:", error);
@@ -63,6 +66,7 @@ export function AuthProvider({ children }) {
       setIsAdmin(admin);
       setUserName(name);
       setCompanyId(companyIdToSave); // Atualiza o estado corretamente
+      setAuthToken(token); // Atualiza o estado authToken
     } catch (error) {
       console.error("Erro ao salvar dados de login:", error);
     }
@@ -85,7 +89,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isAdmin, userName, companyId, login, logout }}
+      value={{
+        isAuthenticated,
+        isAdmin,
+        userName,
+        companyId,
+        authToken,
+        login,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>

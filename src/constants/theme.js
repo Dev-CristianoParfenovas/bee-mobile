@@ -3,6 +3,7 @@ const COLORS = {
   bluebtn: "#60a5fa",
   bluebtnsmall: "#71a1fc", //"#89aef3",
   blueprincipal: "#2e3192",
+  bluecardcli: "#cbe0f7",
   bluedrawer: "#f5f5f5",
   yellowbee: "#f1dc4f",
   red: "red",
