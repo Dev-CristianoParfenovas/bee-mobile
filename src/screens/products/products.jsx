@@ -14,7 +14,9 @@ import { products } from "../../constants/dados.js";
 import { useNavigation } from "@react-navigation/native";
 import TextBox from "../../components/textbox/textbox.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useCart } from "../../context/CartContext.jsx";
 import api from "../../constants/api.js";
+import { useRoute } from "@react-navigation/native";
 
 function Products(props) {
   const { userName } = useAuth();
@@ -22,9 +24,13 @@ function Products(props) {
   const [cartCount, setCartCount] = useState(0); // Contador do carrinho
   const [searchText, setSearchText] = useState(""); //Para pesquisa de produtos
   const [loading, setLoading] = useState(false);
-  // const [companyId, setCompanyId] = useState(null);
+  const { addToCart, cartItems } = useCart(); // Usa o contexto do carrinho
   const [products, setProducts] = useState([]); // Estado para armazenar os produtos
   const [filteredProducts, setFilteredProducts] = useState([]);
+
+  // Pega o customer e employee da navegação
+  const route = useRoute();
+  const { customer, employee } = route.params || {};
 
   const navigation = useNavigation(); // Hook para acessar a navegação
 
@@ -76,50 +82,63 @@ function Products(props) {
   };
 
   // Função para adicionar ao carrinho
-  const addToCart = (item) => {
-    setCartCount(cartCount + 1);
+  // Adiciona o produto ao carrinho junto com o cliente
+  const handleAddToCart = (item) => {
+    addToCart(item, 1, customer); // Adiciona o cliente ao carrinho
     Alert.alert("Carrinho", `${item.name} foi adicionado ao carrinho!`, [
       {
         text: "Ir para o carrinho",
-        onPress: () => props.navigation.navigate("Carrinho"),
+        onPress: () => navigation.navigate("Carrinho", { customer }),
       },
-      {
-        text: "Continuar comprando",
-        style: "cancel",
-      },
+      { text: "Continuar comprando", style: "cancel" },
     ]);
   };
+  /* const handleAddToCart = (item) => {
+    addToCart(item, 1);
+    Alert.alert("Carrinho", `${item.name} foi adicionado ao carrinho!`, [
+      {
+        text: "Ir para o carrinho",
+        onPress: () => navigation.navigate("Carrinho"),
+      },
+      { text: "Continuar comprando", style: "cancel" },
+    ]);
+  };*/
 
   return (
     <View style={styles.container}>
-      {/* Banner no topo */}
+      {/* Banner */}
       <View style={styles.banner}>
         <View style={styles.containerbanner}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            // style={styles.backButton}
-          >
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back-outline" size={30} color="white" />
           </TouchableOpacity>
           <Text style={styles.text}>{userName}</Text>
-
-          {/* Botão do Carrinho com Indicador */}
+          {/* Botão do Carrinho */}
           <View style={styles.cartContainer}>
             <TouchableOpacity
               style={styles.cartButton}
-              onPress={() => Alert.alert("Carrinho")}
+              onPress={() => navigation.navigate("Carrinho", { customer })}
             >
               <Ionicons name="cart-outline" size={30} color="white" />
             </TouchableOpacity>
-            {cartCount > 0 && (
+            {cartItems.length > 0 && (
               <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartCount}</Text>
+                <Text style={styles.cartBadgeText}>
+                  {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                </Text>
               </View>
             )}
           </View>
         </View>
         <Text style={styles.subtitle}>Explore nossos itens exclusivos</Text>
       </View>
+
+      {/* Exibir Nome do Cliente apenas se definido */}
+      {customer && (
+        <View style={styles.customerBanner}>
+          <Text style={styles.customerText}>Cliente: {customer.name}</Text>
+        </View>
+      )}
 
       {/* Campo de Pesquisa */}
       <View style={styles.searchContainer}>
@@ -145,21 +164,15 @@ function Products(props) {
           <FlatList
             data={filteredProducts}
             keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.card}
-                onPress={() => handlePress(item)}
-              >
+              <TouchableOpacity style={styles.card}>
                 <Image source={{ uri: item.image }} style={styles.image} />
                 <View style={styles.details}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {item.name}
-                  </Text>
+                  <Text style={styles.name}>{item.name}</Text>
                   <Text style={styles.price}>R$ {item.price}</Text>
                   <TouchableOpacity
                     style={styles.addToCartButton}
-                    onPress={() => addToCart(item)}
+                    onPress={() => handleAddToCart(item)}
                   >
                     <Ionicons
                       name="add-circle-outline"

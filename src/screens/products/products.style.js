@@ -129,4 +129,20 @@ export const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     color: "#333",
   },
+  customerBanner: {
+    backgroundColor: COLORS.gray6, // Fundo leve para destaque
+    padding: 10, // Espaçamento interno
+    marginHorizontal: 16,
+    marginVertical: 10, // Espaçamento acima e abaixo
+    borderRadius: 8, // Cantos arredondados
+    alignItems: "center", // Alinhamento central do texto
+    justifyContent: "center", // Centraliza o conteúdo
+    borderWidth: 1, // Bordas
+    borderColor: "#dcdcdc", // Cor da borda
+  },
+  customerText: {
+    fontSize: 16, // Tamanho do texto
+    color: "#333", // Cor do texto
+    fontWeight: "bold", // Peso do texto
+  },
 });

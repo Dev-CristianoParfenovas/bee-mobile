@@ -4,7 +4,7 @@ import { COLORS, FONT_SIZE } from "../../constants/theme.js";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.gray6,
   },
   banner: {
     height: 110, // Altura fixa
@@ -165,5 +165,33 @@ export const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     paddingVertical: 10,
     paddingHorizontal: 15,
+  },
+  customerBanner: {
+    backgroundColor: COLORS.gray6, // Fundo leve para destaque
+    padding: 10, // Espaçamento interno
+    marginHorizontal: 3,
+    marginVertical: 10, // Espaçamento acima e abaixo
+    borderRadius: 8, // Cantos arredondados
+    alignItems: "center", // Alinhamento central do texto
+    justifyContent: "center", // Centraliza o conteúdo
+    borderWidth: 1, // Bordas
+    borderColor: "#dcdcdc", // Cor da borda
+  },
+  customerText: {
+    fontSize: 16, // Tamanho do texto
+    color: "#333", // Cor do texto
+    fontWeight: "bold", // Peso do texto
+  },
+  emptyCartBanner: {
+    marginVertical: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  emptyCartText: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });

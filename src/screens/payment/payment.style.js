@@ -51,17 +51,23 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   itemRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 5,
+    flexDirection: "row", // Exibe os itens em linha
+    justifyContent: "space-between", // Distribui o nome e o preço
+    paddingVertical: 10, // Ajuste do espaçamento
+  },
+  itemInfoContainer: {
+    flex: 1, // O nome vai ocupar o espaço disponível
+    marginRight: 10, // Margem para o preço não colar no nome
   },
   itemName: {
-    fontSize: FONT_SIZE.md,
-    color: COLORS.black,
+    fontSize: 16,
+    fontWeight: "bold",
+    flexWrap: "wrap", // Permite que o nome quebre a linha se for muito grande
   },
   itemPrice: {
-    fontSize: FONT_SIZE.md,
-    color: COLORS.black,
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "right", // Alinha o preço à direita
   },
   summaryRow: {
     flexDirection: "row",
@@ -92,13 +98,23 @@ export const styles = StyleSheet.create({
   },
   paymentButton: {
     backgroundColor: COLORS.bluebtn,
-    paddingVertical: 15,
-    paddingHorizontal: 40,
     borderRadius: 8,
   },
-  paymentButtonText: {
-    color: COLORS.white,
-    fontSize: FONT_SIZE.md,
-    fontWeight: "bold",
+
+  customerBanner: {
+    backgroundColor: COLORS.gray6, // Fundo leve para destaque
+    padding: 10, // Espaçamento interno
+    marginHorizontal: 3,
+    marginVertical: 10, // Espaçamento acima e abaixo
+    borderRadius: 8, // Cantos arredondados
+    alignItems: "center", // Alinhamento central do texto
+    justifyContent: "center", // Centraliza o conteúdo
+    borderWidth: 1, // Bordas
+    borderColor: "#dcdcdc", // Cor da borda
+  },
+  customerText: {
+    fontSize: 16, // Tamanho do texto
+    color: "#333", // Cor do texto
+    fontWeight: "bold", // Peso do texto
   },
 });

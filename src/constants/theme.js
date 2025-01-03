@@ -5,6 +5,7 @@ const COLORS = {
   blueprincipal: "#2e3192",
   bluecardcli: "#cbe0f7",
   bluedrawer: "#f5f5f5",
+  bluemenu: "#f0f8ff",
   yellowbee: "#f1dc4f",
   red: "red",
   black: "#000000",

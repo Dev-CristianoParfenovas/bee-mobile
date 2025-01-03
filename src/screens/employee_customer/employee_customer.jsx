@@ -141,7 +141,10 @@ function EmployeeCustomer(props) {
                       selectedCustomer?.id === item.id &&
                         styles.selectedCustomerCard,
                     ]}
-                    onPress={() => setSelectedCustomer(item)}
+                    onPress={() => {
+                      setSelectedCustomer(item); // Define o cliente selecionado
+                      setSearch(item.name); // Atualiza o campo de busca com o nome do cliente
+                    }}
                   >
                     <Text style={styles.customerName}>{item.name}</Text>
                     <Text style={styles.customerPhone}>{item.phone}</Text>

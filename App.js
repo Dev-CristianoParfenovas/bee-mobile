@@ -4,6 +4,7 @@ import Routes from "./src/routes";
 import RoutesAuth from "./src/routesAuth";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import { UserProvider } from "./src/context/UserContext"; // Importe o UserProvider
+import { CartProvider } from "./src/context/CartContext";
 
 function AppContent() {
   const { isAuthenticated, setIsAuthenticated } = useAuth();
@@ -24,7 +25,9 @@ export default function App() {
   return (
     <AuthProvider>
       <UserProvider>
-        <AppContent />
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
       </UserProvider>
     </AuthProvider>
   );

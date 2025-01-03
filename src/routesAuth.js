@@ -84,7 +84,7 @@ function RoutesAuth() {
             fontSize: 16,
             fontWeight: "bold",
           },
-          drawerActiveTintColor: COLORS.blueprincipal,
+          drawerActiveTintColor: COLORS.bluebtn,
           drawerInactiveTintColor: COLORS.blueprincipal,
         })}
       >
@@ -206,21 +206,7 @@ function RoutesAuth() {
                 ),
               }}
             />
-            <Drawer.Screen
-              name="Pagamento"
-              component={Payment}
-              options={{
-                headerShown: false,
-                drawerIcon: ({ color, size }) => (
-                  <Icon
-                    name="payment"
-                    color={color}
-                    size={size}
-                    style={{ marginLeft: -15 }}
-                  />
-                ),
-              }}
-            />
+
             <Drawer.Screen
               name="Painel de Vendas"
               component={SalesDashboard}
@@ -229,6 +215,21 @@ function RoutesAuth() {
                 drawerIcon: ({ color, size }) => (
                   <Icon
                     name="bar-chart"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Pagamento"
+              component={Payment}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="payment"
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}
