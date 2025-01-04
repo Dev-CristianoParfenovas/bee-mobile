@@ -12,7 +12,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 const Payment = () => {
   const navigation = useNavigation(); // Hook para acessar a navegação
   const { companyId } = useAuth(); // Acesse o companyId do contexto de autenticação
-  const [authToken, setAuthToken] = useState(null);
+  const { authToken } = useAuth();
   // Pega os parâmetros da navegação
   const route = useRoute();
   const { customer, cartItems } = route.params || {}; // Recebe os itens do carrinho
@@ -35,6 +35,7 @@ const Payment = () => {
   const handleFinalizeSale = async () => {
     console.log("Finalizar Venda clicado");
 
+    // Verificar se os dados essenciais estão presentes
     if (!companyId) {
       Alert.alert("Erro", "O ID da empresa não foi fornecido.");
       return;
@@ -51,19 +52,45 @@ const Payment = () => {
     }
 
     try {
+      // Obter os dados do carrinho
       const saleData = cartItems.map((item) => ({
         company_id: companyId,
-        product_id: item.id,
+        product_id: item.product_id,
         id_client: customer.id_client,
-        employee_id: 1, // Substituir pelo ID dinâmico, se necessário
+        employee_id: employeeId, // Certifique-se de que `employeeId` está definido
         quantity: item.quantity,
-        total_price: item.quantity * item.price,
-        sale_date: new Date(),
-        tipovenda: 1,
+        total_price: item.total_price,
+        sale_date: new Date().toISOString(),
+        tipovenda: saleType, // Certifique-se de que `saleType` está definido
       }));
 
-      console.log("Enviando dados da venda:", saleData);
+      // Validar os itens do carrinho antes de enviar
+      saleData.forEach((sale) => {
+        console.log("Quantidade recebida no frontend:", sale.quantity);
 
+        // Certifique-se de que `quantity` é um número válido
+        const quantity =
+          typeof sale.quantity === "number"
+            ? sale.quantity
+            : parseInt(sale.quantity, 10);
+
+        if (isNaN(quantity) || quantity <= 0) {
+          throw new Error(
+            `Quantidade inválida para o produto ${sale.product_id}`
+          );
+        }
+
+        sale.quantity = quantity; // Atualize o valor no objeto de venda
+      });
+
+      if (saleData.length === 0) {
+        Alert.alert("Erro", "Não há produtos válidos no carrinho.");
+        return;
+      }
+
+      console.log("Dados da venda antes de enviar para a API:", saleData);
+
+      // Enviar os dados para a API
       const response = await api.post(`/sales/${companyId}`, saleData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
@@ -73,13 +100,18 @@ const Payment = () => {
       if (response.status === 201) {
         Alert.alert("Venda finalizada!", "A venda foi registrada com sucesso.");
         navigation.navigate("ConfirmacaoPagamento", { saleData });
+      } else {
+        console.error("Resposta inesperada:", response);
+        Alert.alert("Erro", "Houve um problema ao registrar a venda.");
       }
     } catch (error) {
+      // Tratamento de erros mais detalhado
       if (error.response) {
         console.error("Erro na resposta da API:", error.response.data);
         Alert.alert(
           "Erro",
-          error.response.data.message || "Houve um problema."
+          error.response.data.message ||
+            "Houve um problema ao processar a venda."
         );
       } else if (error.request) {
         console.error("Erro na requisição:", error.request);
