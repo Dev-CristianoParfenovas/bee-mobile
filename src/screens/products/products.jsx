@@ -20,7 +20,7 @@ import { useRoute } from "@react-navigation/native";
 
 function Products(props) {
   const { userName } = useAuth();
-  const { authToken, companyId } = useAuth();
+  const { authToken, companyId, employeeId } = useAuth();
   const [cartCount, setCartCount] = useState(0); // Contador do carrinho
   const [searchText, setSearchText] = useState(""); //Para pesquisa de produtos
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ function Products(props) {
 
   // Pega o customer e employee da navegação
   const route = useRoute();
-  const { customer, employee } = route.params || {};
+  const { customer } = route.params || {};
 
   const navigation = useNavigation(); // Hook para acessar a navegação
 
@@ -64,8 +64,9 @@ function Products(props) {
   useEffect(() => {
     console.log("Auth Token:", authToken);
     console.log("Company ID:", companyId);
+    console.log("Employee ID: ", employeeId);
     fetchProducts();
-  }, [authToken, companyId]);
+  }, [authToken, companyId, employeeId]);
 
   // Função para quando o item for clicado
   const handlePress = (item) => {

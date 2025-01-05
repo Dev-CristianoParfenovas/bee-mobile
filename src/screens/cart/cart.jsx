@@ -20,13 +20,14 @@ function Cart(props) {
   const { cartItems, addToCart, removeFromCart } = useCart();
 
   const navigation = useNavigation(); // Hook para acessar a navegação
-  const { userName } = useAuth();
+  const { userName, employeeId } = useAuth();
 
   // Pega o customer e employee da navegação
   const route = useRoute();
   const { customer } = route.params || {};
 
   console.log("Customer:", customer);
+  console.log("EmployeeId no contexto:", employeeId);
 
   // Função para calcular o total de itens no carrinho
   const getCartCount = () =>
@@ -164,10 +165,11 @@ function Cart(props) {
             onPress={() => {
               console.log("customer:", customer); // Verifique se o customer está definido
               console.log("cartItems:", cartItems); // Verifique se o cartItems está definido
-
+              console.log("employeeId na navegação:", employeeId);
               navigation.navigate("Pagamento", {
                 customer,
                 cartItems,
+                employeeId: employeeId,
               });
             }}
           />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, FlatList, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./payment.style.js";
@@ -13,9 +13,12 @@ const Payment = () => {
   const navigation = useNavigation(); // Hook para acessar a navegação
   const { companyId } = useAuth(); // Acesse o companyId do contexto de autenticação
   const { authToken } = useAuth();
+  // const { employeeId } = useAuth();
+
   // Pega os parâmetros da navegação
   const route = useRoute();
-  const { customer, cartItems } = route.params || {}; // Recebe os itens do carrinho
+  const { customer, cartItems, employeeId } = route.params || {}; // Recebe os itens do carrinho
+  console.log("employeeId na tela de pagamento:", employeeId);
 
   // Função para calcular subtotal (sem taxas)
   const subtotal = cartItems.reduce(
@@ -35,7 +38,6 @@ const Payment = () => {
   const handleFinalizeSale = async () => {
     console.log("Finalizar Venda clicado");
 
-    // Verificar se os dados essenciais estão presentes
     if (!companyId) {
       Alert.alert("Erro", "O ID da empresa não foi fornecido.");
       return;
@@ -51,46 +53,49 @@ const Payment = () => {
       return;
     }
 
+    if (!cartItems || cartItems.length === 0) {
+      Alert.alert("Erro", "Não há produtos no carrinho.");
+      return;
+    }
+
+    // Verificar o ID do funcionário
+    const validEmployeeId = parseInt(employeeId, 10);
+    if (isNaN(validEmployeeId)) {
+      Alert.alert("Erro", "ID do funcionário inválido.");
+      return;
+    }
+
+    console.log("EmployeeId antes de saleData: ", validEmployeeId);
+
     try {
-      // Obter os dados do carrinho
-      const saleData = cartItems.map((item) => ({
-        company_id: companyId,
-        product_id: item.product_id,
-        id_client: customer.id_client,
-        employee_id: employeeId, // Certifique-se de que `employeeId` está definido
-        quantity: item.quantity,
-        total_price: item.total_price,
-        sale_date: new Date().toISOString(),
-        tipovenda: saleType, // Certifique-se de que `saleType` está definido
-      }));
-
-      // Validar os itens do carrinho antes de enviar
-      saleData.forEach((sale) => {
-        console.log("Quantidade recebida no frontend:", sale.quantity);
-
-        // Certifique-se de que `quantity` é um número válido
-        const quantity =
-          typeof sale.quantity === "number"
-            ? sale.quantity
-            : parseInt(sale.quantity, 10);
-
-        if (isNaN(quantity) || quantity <= 0) {
-          throw new Error(
-            `Quantidade inválida para o produto ${sale.product_id}`
-          );
+      // Construir os dados da venda
+      const saleData = cartItems.map((item) => {
+        const productId = item.id; // Confirmação do uso de 'id'
+        if (!productId) {
+          throw new Error(`ID do produto inválido: ${JSON.stringify(item)}`);
         }
 
-        sale.quantity = quantity; // Atualize o valor no objeto de venda
+        const quantity = Math.floor(Number(item.quantity));
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+          throw new Error(`Quantidade inválida: ${quantity}`);
+        }
+
+        const totalPrice = parseFloat(item.price);
+
+        return {
+          company_id: companyId,
+          product_id: productId,
+          id_client: customer.id_client,
+          employee_id: validEmployeeId, // Usando o employeeId convertido
+          quantity,
+          total_price: totalPrice,
+          sale_date: new Date().toISOString(),
+          tipovenda: 1,
+        };
       });
 
-      if (saleData.length === 0) {
-        Alert.alert("Erro", "Não há produtos válidos no carrinho.");
-        return;
-      }
+      console.log("Dados da venda prontos para envio:", saleData);
 
-      console.log("Dados da venda antes de enviar para a API:", saleData);
-
-      // Enviar os dados para a API
       const response = await api.post(`/sales/${companyId}`, saleData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
@@ -105,7 +110,6 @@ const Payment = () => {
         Alert.alert("Erro", "Houve um problema ao registrar a venda.");
       }
     } catch (error) {
-      // Tratamento de erros mais detalhado
       if (error.response) {
         console.error("Erro na resposta da API:", error.response.data);
         Alert.alert(
@@ -118,7 +122,10 @@ const Payment = () => {
         Alert.alert("Erro", "Nenhuma resposta do servidor.");
       } else {
         console.error("Erro desconhecido:", error.message);
-        Alert.alert("Erro", "Algo deu errado. Tente novamente.");
+        Alert.alert(
+          "Erro",
+          error.message || "Algo deu errado. Tente novamente."
+        );
       }
     }
   };
