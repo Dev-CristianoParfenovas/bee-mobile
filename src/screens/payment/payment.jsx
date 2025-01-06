@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, FlatList, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./payment.style.js";
 import images from "../../constants/icons.js";
@@ -8,16 +15,18 @@ import ButtonPayment from "../../components/button_payment/button_payment.jsx";
 import { useRoute } from "@react-navigation/native";
 import api from "../../constants/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useCart } from "../../context/CartContext.jsx";
 
 const Payment = () => {
   const navigation = useNavigation(); // Hook para acessar a navegação
   const { companyId } = useAuth(); // Acesse o companyId do contexto de autenticação
   const { authToken } = useAuth();
-  // const { employeeId } = useAuth();
+  const { employeeId } = useAuth();
+  const { clearCart } = useCart(); // Acesse a função clearCart do contexto
 
   // Pega os parâmetros da navegação
   const route = useRoute();
-  const { customer, cartItems, employeeId } = route.params || {}; // Recebe os itens do carrinho
+  const { customer, cartItems } = route.params || {}; // Recebe os itens do carrinho
   console.log("employeeId na tela de pagamento:", employeeId);
 
   // Função para calcular subtotal (sem taxas)
@@ -35,6 +44,7 @@ const Payment = () => {
   const total = subtotal;
 
   // Função para enviar a venda para a API
+
   const handleFinalizeSale = async () => {
     console.log("Finalizar Venda clicado");
 
@@ -48,7 +58,9 @@ const Payment = () => {
       return;
     }
 
-    if (!customer || !customer.id_client) {
+    // Permite a venda sem cliente, mas verifica se foi inserido
+    const customerId = customer ? customer.id_client : null;
+    if (customer && !customerId) {
       Alert.alert("Erro", "Os dados do cliente não estão disponíveis.");
       return;
     }
@@ -58,35 +70,35 @@ const Payment = () => {
       return;
     }
 
-    // Verificar o ID do funcionário
     const validEmployeeId = parseInt(employeeId, 10);
     if (isNaN(validEmployeeId)) {
       Alert.alert("Erro", "ID do funcionário inválido.");
       return;
     }
 
-    console.log("EmployeeId antes de saleData: ", validEmployeeId);
-
     try {
-      // Construir os dados da venda
       const saleData = cartItems.map((item) => {
-        const productId = item.id; // Confirmação do uso de 'id'
+        const productId = item.id;
         if (!productId) {
           throw new Error(`ID do produto inválido: ${JSON.stringify(item)}`);
         }
 
-        const quantity = Math.floor(Number(item.quantity));
-        if (!Number.isInteger(quantity) || quantity <= 0) {
-          throw new Error(`Quantidade inválida: ${quantity}`);
+        let quantity = parseFloat(item.quantity);
+        if (isNaN(quantity) || quantity <= 0) {
+          throw new Error(`Quantidade inválida: ${item.quantity}`);
         }
+        quantity = Math.round(quantity * 100) / 100; // Arredondar para 2 casas decimais
 
         const totalPrice = parseFloat(item.price);
+        if (isNaN(totalPrice) || totalPrice <= 0) {
+          throw new Error(`Preço total inválido: ${item.price}`);
+        }
 
         return {
           company_id: companyId,
           product_id: productId,
-          id_client: customer.id_client,
-          employee_id: validEmployeeId, // Usando o employeeId convertido
+          id_client: customerId, // Pode ser null caso o cliente não tenha sido inserido
+          employee_id: validEmployeeId,
           quantity,
           total_price: totalPrice,
           sale_date: new Date().toISOString(),
@@ -101,12 +113,29 @@ const Payment = () => {
       });
 
       console.log("Resposta da API:", response);
-
       if (response.status === 201) {
         Alert.alert("Venda finalizada!", "A venda foi registrada com sucesso.");
-        navigation.navigate("ConfirmacaoPagamento", { saleData });
+
+        // Limpar o cliente e o carrinho após a venda ser finalizada
+        clearCart(); // Limpar o carrinho no contexto
+
+        // Limpar o cliente e o carrinho após a venda ser finalizada
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: "DrawerScreen",
+              params: {
+                saleData,
+                customer: null,
+                cartItems: [],
+                total: 0,
+                subtotal: 0,
+              },
+            },
+          ],
+        });
       } else {
-        console.error("Resposta inesperada:", response);
         Alert.alert("Erro", "Houve um problema ao registrar a venda.");
       }
     } catch (error) {
@@ -114,12 +143,8 @@ const Payment = () => {
         console.error("Erro na resposta da API:", error.response.data);
         Alert.alert(
           "Erro",
-          error.response.data.message ||
-            "Houve um problema ao processar a venda."
+          error.response.data.message || "Erro ao processar a venda."
         );
-      } else if (error.request) {
-        console.error("Erro na requisição:", error.request);
-        Alert.alert("Erro", "Nenhuma resposta do servidor.");
       } else {
         console.error("Erro desconhecido:", error.message);
         Alert.alert(

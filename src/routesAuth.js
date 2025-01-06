@@ -43,7 +43,7 @@ function CustomDrawerContent(props) {
 }
 
 function RoutesAuth() {
-  const { isAdmin, isAuthenticated, userName, logout } = useAuth();
+  const { isAdmin, isAuthenticated, userName, idEmployee, logout } = useAuth();
   console.log("Adm: ", isAdmin);
 
   const handleLogout = async () => {

@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadUserName = async () => {
-      // await AsyncStorage.clear();
+      //  await AsyncStorage.clear();
       try {
         const storedName = await AsyncStorage.getItem("userName");
         if (storedName) {
@@ -30,33 +30,50 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadAuthState = async () => {
-      // await AsyncStorage.clear();
+      //  await AsyncStorage.clear();
       try {
         const token = await AsyncStorage.getItem("authToken");
         const adminStatus = await AsyncStorage.getItem("isAdmin");
         const storedCompanyId = await AsyncStorage.getItem("companyId");
-        //const storedEmployeeId = await AsyncStorage.getItem("employeeId");
+        const storedEmployeeId = await AsyncStorage.getItem("employeeId");
 
-        console.log("Company ID carregado:", storedCompanyId); // Deve exibir o valor correto
-        console.log("Auth Token carregado:", token);
-        //console.log("Employee ID carregado:", storedEmployeeId);
-        console.log("Admin carregado: ", isAdmin);
-        if (token) {
-          setIsAuthenticated(true);
-          setIsAdmin(adminStatus === "true");
-          setCompanyId(storedCompanyId || ""); // Certifica que o estado é atualizado corretamente
-          //  setEmployeeId(storedEmployeeId ? parseInt(storedEmployeeId, 10) : 0);
-          setAuthToken(token); // Atualiza o estado authToken
-        }
+        setIsAuthenticated(!!token);
+        setIsAdmin(adminStatus === "true"); // Converte string para boolean
+        setCompanyId(storedCompanyId || ""); // Certifica que não será undefined
+        setEmployeeId(storedEmployeeId ? parseInt(storedEmployeeId, 10) : 0); // Converte para número
+        setAuthToken(token || "");
+        console.log("idemployee: ", storedEmployeeId);
+        console.log("idcompany: ", storedCompanyId);
       } catch (error) {
         console.error("Erro ao carregar estado de autenticação:", error);
       }
     };
-
     loadAuthState();
   }, []);
 
-  const login = async (token, name, company_id, admin = true) => {
+  const login = async (token, name, company_id, admin = true, employeeId) => {
+    try {
+      const companyIdToSave = company_id ? company_id.toString() : "";
+      const employeeIdToSave = employeeId ? employeeId.toString() : ""; // Converte para string
+
+      await AsyncStorage.setItem("authToken", token);
+      await AsyncStorage.setItem("isAdmin", admin.toString()); // Armazena como string
+      await AsyncStorage.setItem("userName", name);
+      await AsyncStorage.setItem("companyId", companyIdToSave);
+      await AsyncStorage.setItem("employeeId", employeeIdToSave);
+
+      setIsAuthenticated(true);
+      setIsAdmin(admin); // Já vem como boolean
+      setUserName(name);
+      setCompanyId(companyIdToSave);
+      setEmployeeId(employeeId); // Mantém como número
+      setAuthToken(token);
+    } catch (error) {
+      console.error("Erro ao salvar dados de login:", error);
+    }
+  };
+
+  /* const login = async (token, name, company_id, admin = true) => {
     try {
       const companyIdToSave = company_id ? company_id.toString() : ""; // Converte para string
       //  const employeeIdToSave = employeeId ? employeeId.toString() : "";
@@ -79,7 +96,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Erro ao salvar dados de login:", error);
     }
-  };
+  };*/
 
   const logout = async () => {
     try {
@@ -105,7 +122,7 @@ export function AuthProvider({ children }) {
         isAdmin,
         userName,
         companyId,
-        //  employeeId,
+        employeeId,
         authToken,
         login,
         logout,

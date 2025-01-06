@@ -19,7 +19,7 @@ import { useFocusEffect } from "@react-navigation/native";
 
 function EmployeeCustomer(props) {
   const { userName } = useAuth();
-  const { companyId } = useAuth();
+  const { companyId, employeeId } = useAuth();
   const [employee, setEmployee] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -164,6 +164,7 @@ function EmployeeCustomer(props) {
           onPress={() =>
             props.navigation.navigate("Lista de Produtos", {
               employee,
+              employee: employeeId, // Passa o ID do funcionário
               customer: selectedCustomer,
             })
           }

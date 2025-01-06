@@ -43,26 +43,39 @@ function Login(props) {
       // Verifica se a resposta contém os dados necessários
       if (
         token &&
+        employee?.id_employee &&
         employee?.is_admin !== undefined &&
         employee?.name &&
         employee?.companyId !== undefined
       ) {
-        // Salva os dados do login no AsyncStorage
-        await AsyncStorage.setItem("userToken", token);
-        await AsyncStorage.setItem("companyId", employee.companyId.toString());
+        // Salva os dados no AsyncStorage
+        await AsyncStorage.multiSet([
+          ["userToken", token],
+          ["companyId", employee.companyId.toString()],
+          ["employeeName", employee.name],
+          ["isAdmin", employee.is_admin.toString()],
+          ["employeeId", employee.id_employee.toString()],
+        ]);
 
-        // Teste para garantir que o AsyncStorage foi salvo corretamente
-        const storedToken = await AsyncStorage.getItem("userToken");
-        const storedCompanyId = await AsyncStorage.getItem("companyId");
-        console.log("Token armazenado:", storedToken);
-        console.log("CompanyId armazenado:", storedCompanyId);
+        // Teste para garantir que os dados foram armazenados corretamente
+        const [storedToken, storedCompanyId, storedEmployeeId] =
+          await AsyncStorage.multiGet(["userToken", "companyId", "employeeId"]);
+        console.log("Token armazenado:", storedToken[1]);
+        console.log("CompanyId armazenado:", storedCompanyId[1]);
+        console.log("EmployeeId armazenado:", storedEmployeeId[1]);
 
-        // Realiza o login (essa parte pode ser ajustada conforme o seu fluxo)
+        // Garante que o AsyncStorage tem os valores esperados
+        if (!storedToken[1] || !storedCompanyId[1] || !storedEmployeeId[1]) {
+          throw new Error("Falha ao armazenar os dados de login");
+        }
+
+        // Realiza o login
         await login(
           token,
           employee.name,
           employee.companyId,
-          employee.is_admin
+          employee.is_admin,
+          employee.id_employee
         );
 
         // Exibe uma mensagem de sucesso
