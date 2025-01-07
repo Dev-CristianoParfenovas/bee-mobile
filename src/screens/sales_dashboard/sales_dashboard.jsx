@@ -7,12 +7,8 @@ import { useNavigation } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
-const employees = [
-  { id: "1", name: "João", totalSales: 300, salesDate: "2024-12-13" },
-  { id: "2", name: "Maria", totalSales: 450, salesDate: "2024-12-13" },
-  { id: "3", name: "Carlos", totalSales: 200, salesDate: "2024-12-12" },
-];
+import api from "../../constants/api.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const SalesDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState("all");
@@ -20,22 +16,69 @@ const SalesDashboard = () => {
   const [endDate, setEndDate] = useState(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [filteredData, setFilteredData] = useState(employees);
-
+  const [filteredData, setFilteredData] = useState([]);
+  const [employees, setEmployees] = useState([]); // Lista de funcionários
+  const [sales, setSales] = useState([]); // Adicionado o estado de vendas
+  const { userName, companyId, authToken, employeeId } = useAuth(); // authToken já está vindo do contexto
   const navigation = useNavigation();
 
-  // Atualiza os dados filtrados sempre que o filtro muda
-  useEffect(() => {
-    const newFilteredData = employees.filter((employee) => {
-      const employeeSalesDate = new Date(employee.salesDate);
-      return (
-        (selectedEmployee === "all" || employee.id === selectedEmployee) &&
-        employeeSalesDate >= startDate &&
-        employeeSalesDate <= endDate
-      );
-    });
+  console.log("Funcionários: ", userName);
 
-    setFilteredData(newFilteredData);
+  // Função para buscar funcionários
+  const fetchEmployees = async () => {
+    try {
+      console.log("Company ID:", companyId);
+      const response = await api.get(`/employees/${companyId}`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`, // Adiciona o token no cabeçalho
+        },
+      });
+      setEmployees(response.data); // Atualiza a lista de funcionários
+    } catch (error) {
+      console.error("Erro ao buscar funcionários: ", error);
+    }
+  };
+
+  // Função para buscar vendas com filtro
+  // Função para buscar vendas com o filtro de funcionário
+  const fetchSales = async () => {
+    try {
+      // Ajusta as datas de início e fim
+      let startOfDay = new Date(startDate);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+      let endOfDay = new Date(endDate);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      // Adiciona o companyId à URL da requisição
+      let url = `/sales?companyId=${companyId}&startDate=${startOfDay.toISOString()}&endDate=${endOfDay.toISOString()}`;
+
+      // Se o funcionário não for "Todos", adiciona o filtro de employeeId
+      if (selectedEmployee && selectedEmployee !== "all") {
+        url += `&employeeId=${selectedEmployee}`;
+      } else if (employeeId) {
+        // Se o funcionário não for selecionado, usa o employeeId do contexto
+        url += `&employeeId=${employeeId}`;
+      }
+
+      console.log("Requisição para URL:", url); // Verifique se o `companyId` está sendo adicionado corretamente
+
+      const response = await api.get(url, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+
+      console.log("Dados retornados da API:", response.data);
+
+      // Atualiza o estado com os dados de vendas
+      setSales(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar vendas:", error);
+    }
+  };
+
+  // Chama a função fetchSales sempre que selectedEmployee, startDate ou endDate mudarem
+  useEffect(() => {
+    fetchEmployees();
+    fetchSales();
   }, [selectedEmployee, startDate, endDate]);
 
   return (
@@ -65,12 +108,15 @@ const SalesDashboard = () => {
       <View style={styles.containerfunc}>
         <Picker
           selectedValue={selectedEmployee}
-          onValueChange={(itemValue) => setSelectedEmployee(itemValue)}
+          onValueChange={(itemValue) => {
+            console.log("Valor selecionado no Picker:", itemValue);
+            setSelectedEmployee(itemValue);
+          }}
         >
           <Picker.Item label="Todos" value="all" />
           {employees.map((employee) => (
             <Picker.Item
-              key={employee.id}
+              key={employee.id || employee.name}
               label={employee.name}
               value={employee.id}
             />
@@ -78,8 +124,8 @@ const SalesDashboard = () => {
         </Picker>
       </View>
 
-      {/* Filtro por data */}
       <View style={styles.dateFilters}>
+        {/* Filtro por Data Inicial */}
         <View style={styles.datePicker}>
           <TouchableOpacity
             style={styles.customButton}
@@ -101,6 +147,8 @@ const SalesDashboard = () => {
             />
           )}
         </View>
+
+        {/* Filtro por Data Final */}
         <View style={styles.datePicker}>
           <TouchableOpacity
             style={styles.customButton}
@@ -122,13 +170,20 @@ const SalesDashboard = () => {
             />
           )}
         </View>
+
+        {/* Botão para Aplicar o Filtro */}
+        <View style={styles.filterButtonContainer}>
+          <TouchableOpacity style={styles.filterButton} onPress={fetchSales}>
+            <Text style={styles.filterButtonText}>Aplicar Filtro</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* FlatList com resumo de vendas */}
       <View style={styles.orderSummary}>
         <FlatList
-          data={filteredData}
-          keyExtractor={(item) => item.id}
+          data={filteredData} // Usa os dados filtrados
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.itemRow}>
               <Text style={styles.itemName}>{item.name}</Text>
