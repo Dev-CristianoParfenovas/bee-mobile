@@ -19,45 +19,32 @@ const SalesDashboard = () => {
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [clients, setClients] = useState([]); // Inicializa clients como array vazio
-  const [clientsError, setClientsError] = useState(false); // Adiciona estado para erro de clientes
+  const [clients, setClients] = useState([]);
+  const [clientsError, setClientsError] = useState(false);
   const [sales, setSales] = useState([]);
-  const { userName, companyId, authToken, employeeId } = useAuth(); // authToken já está vindo do contexto
+  const { userName, companyId, authToken, employeeId } = useAuth();
   const navigation = useNavigation();
 
-  // Função para buscar funcionários
   const fetchEmployees = async () => {
     try {
-      console.log("Company ID:", companyId);
       const response = await api.get(`/employees/${companyId}`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
-      setEmployees(response.data); // Atualiza a lista de funcionários
+      setEmployees(response.data);
     } catch (error) {
       console.error("Erro ao buscar funcionários: ", error);
     }
   };
 
-  // Função para buscar clientes
   const fetchClients = async () => {
     try {
       const response = await api.get(`/clients/${companyId}`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
-
-      // Logar a resposta completa para entender sua estrutura
-      console.log("Resposta completa da API de clientes:", response);
-
-      // Verificar se a resposta contém a chave 'data' e, dentro dela, um array de clientes
       if (response.data && Array.isArray(response.data.data)) {
-        setClients(response.data.data); // Definir clientes encontrados
-        setClientsError(false); // Reseta o erro
+        setClients(response.data.data);
+        setClientsError(false);
       } else {
-        // Se não for um array ou estrutura inesperada, loga o erro
         setClientsError(true);
         console.error(
           "Clientes não encontrados, formato inesperado:",
@@ -65,38 +52,41 @@ const SalesDashboard = () => {
         );
       }
     } catch (error) {
-      setClientsError(true); // Marca erro caso falhe ao buscar
+      setClientsError(true);
       console.error("Erro ao buscar clientes: ", error);
     }
   };
 
-  // Função para calcular o total de vendas por funcionário
-  const calculateTotalSalesByEmployee = (salesData) => {
-    const salesByEmployee = salesData.reduce((acc, sale) => {
-      const employeeId = sale.employee_id;
+  const calculateTotalSalesByEmployee = (sales) => {
+    const salesByEmployee = {};
 
-      const totalSale =
-        sale.total_price && !isNaN(parseFloat(sale.total_price))
-          ? parseFloat(sale.total_price)
-          : 0;
+    if (!employees || employees.length === 0) {
+      console.warn("Lista de funcionários está vazia ou não carregada.");
+      return [];
+    }
 
-      if (!acc[employeeId]) {
-        acc[employeeId] = {
-          employeeId,
-          name: sale.employee_name,
+    sales.forEach((sale) => {
+      const { employee_id, total_price } = sale;
+
+      // Inicializa o registro para o funcionário, se não existir
+      if (!salesByEmployee[employee_id]) {
+        console.log("Verificando dados de funcionário para ID:", employee_id);
+        const employee = employees.find((emp) => emp.id === employee_id); // Busca o nome do funcionário
+        console.log("Funcionário encontrado:", employee);
+        salesByEmployee[employee_id] = {
+          employeeId: employee_id,
+          name: employee?.name || `Funcionário ${employee_id}`, // Usa o nome real ou um placeholder
           totalSales: 0,
         };
       }
 
-      acc[employeeId].totalSales += totalSale;
-
-      return acc;
-    }, {});
+      // Soma o total de vendas, convertendo `total_price` para número
+      salesByEmployee[employee_id].totalSales += parseFloat(total_price) || 0;
+    });
 
     return Object.values(salesByEmployee);
   };
 
-  // Função para buscar vendas com o filtro de funcionário e cliente
   const fetchSales = async () => {
     try {
       let startOfDay = new Date(startDate);
@@ -106,29 +96,45 @@ const SalesDashboard = () => {
 
       let url = `/sales/${companyId}/date-range?startDate=${startOfDay.toISOString()}&endDate=${endOfDay.toISOString()}`;
 
-      if (selectedEmployee && selectedEmployee !== "all") {
-        url += `&employeeId=${selectedEmployee}`;
-      } else if (employeeId) {
-        url += `&employeeId=${employeeId}`;
-      }
-
-      if (selectedClient && selectedClient !== "all") {
-        url += `&clientId=${selectedClient}`;
-      }
-
-      console.log("Requisição para URL:", url);
-
+      // Faz a requisição
       const response = await api.get(url, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-      console.log("Resposta da API de vendas:", response.data);
-
       if (response.data && Array.isArray(response.data)) {
-        const salesData = calculateTotalSalesByEmployee(response.data);
+        // Log dos dados recebidos da API
+        console.log("Dados recebidos da API:", response.data);
+
+        // Aplica o filtro de vendas
+        const filteredSales = response.data.filter((sale) => {
+          // Filtro por empregado
+          if (
+            selectedEmployee !== "all" &&
+            parseInt(sale.employee_id) !== parseInt(selectedEmployee) // Garante que os valores sejam comparados como números
+          ) {
+            return false;
+          }
+
+          // Filtro por cliente
+          if (
+            selectedClient !== "all" &&
+            parseInt(sale.client_id) !== parseInt(selectedClient) // Garante que os valores sejam comparados como números
+          ) {
+            return false;
+          }
+          return true;
+        });
+
+        console.log("Vendas filtradas:", filteredSales);
+
+        // Calcula o total de vendas por funcionário
+        const salesData = calculateTotalSalesByEmployee(filteredSales);
+        console.log("SalesData após cálculo:", salesData);
+
         setFilteredData(salesData);
       } else {
         console.warn("Resposta da API de vendas não contém dados válidos.");
+        setFilteredData([]);
       }
     } catch (error) {
       console.error("Erro ao buscar vendas:", error);
@@ -160,20 +166,16 @@ const SalesDashboard = () => {
         <Text style={styles.text}> Painel de Vendas</Text>
       </View>
 
-      {/* Picker para selecionar funcionário */}
       <Text style={styles.sectionTitle}>Filtrar por Funcionário</Text>
       <View style={styles.containerfunc}>
         <Picker
           selectedValue={selectedEmployee}
-          onValueChange={(itemValue) => {
-            console.log("Valor selecionado no Picker:", itemValue);
-            setSelectedEmployee(itemValue);
-          }}
+          onValueChange={(itemValue) => setSelectedEmployee(itemValue)}
         >
-          <Picker.Item label="Todos" value="all" />
+          <Picker.Item key="all" label="Todos" value="all" />
           {employees.map((employee) => (
             <Picker.Item
-              key={employee.id || employee.name}
+              key={`employee-${employee.id}`} // Usando uma chave única para cada item
               label={employee.name}
               value={employee.id}
             />
@@ -181,23 +183,23 @@ const SalesDashboard = () => {
         </Picker>
       </View>
 
-      {/* Picker para selecionar cliente */}
       <Text style={styles.sectionTitle}>Filtrar por Cliente</Text>
       <View style={styles.containerfunc}>
         <Picker
           selectedValue={selectedClient}
-          onValueChange={(itemValue) => {
-            console.log("Valor selecionado no Picker Cliente:", itemValue);
-            setSelectedClient(itemValue);
-          }}
+          onValueChange={(itemValue) => setSelectedClient(itemValue)}
         >
-          <Picker.Item label="Todos" value="all" />
+          <Picker.Item key="all" label="Todos" value="all" />
           {clientsError ? (
-            <Picker.Item label="Erro ao carregar clientes" value="" />
+            <Picker.Item
+              key="error"
+              label="Erro ao carregar clientes"
+              value=""
+            />
           ) : (
             clients.map((client) => (
               <Picker.Item
-                key={client.id || client.name}
+                key={`client-${client.id}`} // Usando uma chave única para cada item
                 label={client.name}
                 value={client.id}
               />
@@ -206,7 +208,6 @@ const SalesDashboard = () => {
         </Picker>
       </View>
 
-      {/* Exibindo o cliente selecionado */}
       {selectedClient !== "all" && (
         <Text style={styles.selectedEmployeeText}>
           Cliente Selecionado:{" "}
@@ -214,16 +215,15 @@ const SalesDashboard = () => {
         </Text>
       )}
 
-      {/* Filtro por Data */}
       <View style={styles.dateFilters}>
         <View style={styles.datePicker}>
           <TouchableOpacity
             style={styles.customButton}
             onPress={() => setShowStartDatePicker(true)}
           >
-            <Text style={styles.customButtonText}>
-              {`Data Inicial: ${startDate.toLocaleDateString()}`}
-            </Text>
+            <Text
+              style={styles.customButtonText}
+            >{`Data Inicial: ${startDate.toLocaleDateString()}`}</Text>
           </TouchableOpacity>
           {showStartDatePicker && (
             <DateTimePicker
@@ -243,9 +243,9 @@ const SalesDashboard = () => {
             style={styles.customButton}
             onPress={() => setShowEndDatePicker(true)}
           >
-            <Text style={styles.customButtonText}>
-              {`Data Final: ${endDate.toLocaleDateString()}`}
-            </Text>
+            <Text
+              style={styles.customButtonText}
+            >{`Data Final: ${endDate.toLocaleDateString()}`}</Text>
           </TouchableOpacity>
           {showEndDatePicker && (
             <DateTimePicker
@@ -267,32 +267,23 @@ const SalesDashboard = () => {
         </View>
       </View>
 
-      {/* Exibição dos Totais de Vendas */}
       <View style={styles.orderSummary}>
         <FlatList
           data={filteredData}
-          keyExtractor={(item) =>
-            item.employeeId ? item.employeeId.toString() : "defaultKey"
-          }
-          renderItem={({ item }) => {
-            return (
+          keyExtractor={(item) => item.employeeId.toString()}
+          renderItem={({ item }) => (
+            console.log("Item:", item), // Verifique o conteúdo de item
+            (
               <View style={styles.itemRow}>
                 <Text style={styles.itemName}>
-                  {selectedClient !== "all" ? (
-                    <Text>
-                      {clients.find((c) => c.id === selectedClient)?.name ||
-                        "Cliente não disponível"}
-                    </Text>
-                  ) : (
-                    item.name || "Nome não disponível"
-                  )}
+                  {item.name || "Nome não disponível"}
                 </Text>
                 <Text style={styles.itemPrice}>
-                  R$ {item.totalSales ? item.totalSales.toFixed(2) : "0.00"}
+                  R$ {item.totalSales.toFixed(2)}
                 </Text>
               </View>
-            );
-          }}
+            )
+          )}
           ListEmptyComponent={() => (
             <Text style={styles.emptyMessage}>
               Nenhum funcionário ou cliente encontrado para o período
