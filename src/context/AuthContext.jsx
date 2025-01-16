@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadAuthState = async () => {
-      //  await AsyncStorage.clear();
+      // await AsyncStorage.clear();
       try {
         const token = await AsyncStorage.getItem("authToken");
         const adminStatus = await AsyncStorage.getItem("isAdmin");

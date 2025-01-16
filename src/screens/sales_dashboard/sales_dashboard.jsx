@@ -57,33 +57,31 @@ const SalesDashboard = () => {
     }
   };
 
-  const calculateTotalSalesByEmployee = (sales) => {
+  const calculateTotalSalesByEmployee = (sales, selectedEmployeeId = "all") => {
     const salesByEmployee = {};
 
-    if (!employees || employees.length === 0) {
-      console.warn("Lista de funcionários está vazia ou não carregada.");
-      return [];
-    }
-
     sales.forEach((sale) => {
-      const { employee_id, total_price } = sale;
+      const { employee_id, total_price, employee_name } = sale;
 
-      // Inicializa o registro para o funcionário, se não existir
+      // Aplicando o filtro de funcionário corretamente
+      if (selectedEmployeeId !== "all" && employee_id !== selectedEmployeeId) {
+        return; // Ignora vendas de outros funcionários
+      }
+
+      // Se ainda não existe o funcionário no objeto, inicializa
       if (!salesByEmployee[employee_id]) {
-        console.log("Verificando dados de funcionário para ID:", employee_id);
-        const employee = employees.find((emp) => emp.id === employee_id); // Busca o nome do funcionário
-        console.log("Funcionário encontrado:", employee);
         salesByEmployee[employee_id] = {
           employeeId: employee_id,
-          name: employee?.name || `Funcionário ${employee_id}`, // Usa o nome real ou um placeholder
+          name: employee_name || `Funcionário ${employee_id}`,
           totalSales: 0,
         };
       }
 
-      // Soma o total de vendas, convertendo `total_price` para número
+      // Soma o total de vendas do funcionário
       salesByEmployee[employee_id].totalSales += parseFloat(total_price) || 0;
     });
 
+    // Retorna os dados filtrados para os funcionários
     return Object.values(salesByEmployee);
   };
 
@@ -96,44 +94,37 @@ const SalesDashboard = () => {
 
       let url = `/sales/${companyId}/date-range?startDate=${startOfDay.toISOString()}&endDate=${endOfDay.toISOString()}`;
 
-      // Faz a requisição
+      let employeeId = selectedEmployee === "all" ? null : selectedEmployee;
+      let clientId = selectedClient === "all" ? null : selectedClient;
+
+      // Adicionar os filtros apenas se forem diferentes de 'all' ou null
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (clientId) {
+        url += `&clientId=${clientId}`;
+      }
+
       const response = await api.get(url, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
+      console.log("Resposta da API:", response.data);
+
       if (response.data && Array.isArray(response.data)) {
-        // Log dos dados recebidos da API
-        console.log("Dados recebidos da API:", response.data);
+        // Filtrar as vendas pelo employeeId selecionado
+        const filteredSales = response.data.filter(
+          (sale) =>
+            selectedEmployee === "all" || sale.employee_id === selectedEmployee
+        );
 
-        // Aplica o filtro de vendas
-        const filteredSales = response.data.filter((sale) => {
-          // Filtro por empregado
-          if (
-            selectedEmployee !== "all" &&
-            parseInt(sale.employee_id) !== parseInt(selectedEmployee) // Garante que os valores sejam comparados como números
-          ) {
-            return false;
-          }
-
-          // Filtro por cliente
-          if (
-            selectedClient !== "all" &&
-            parseInt(sale.client_id) !== parseInt(selectedClient) // Garante que os valores sejam comparados como números
-          ) {
-            return false;
-          }
-          return true;
-        });
-
-        console.log("Vendas filtradas:", filteredSales);
-
-        // Calcula o total de vendas por funcionário
-        const salesData = calculateTotalSalesByEmployee(filteredSales);
-        console.log("SalesData após cálculo:", salesData);
-
+        const salesData = calculateTotalSalesByEmployee(
+          filteredSales,
+          selectedEmployee
+        );
         setFilteredData(salesData);
+        console.log("Filtered Data:", salesData); // Verifique os dados filtrados
       } else {
-        console.warn("Resposta da API de vendas não contém dados válidos.");
         setFilteredData([]);
       }
     } catch (error) {
@@ -170,7 +161,7 @@ const SalesDashboard = () => {
       <View style={styles.containerfunc}>
         <Picker
           selectedValue={selectedEmployee}
-          onValueChange={(itemValue) => setSelectedEmployee(itemValue)}
+          onValueChange={(value) => setSelectedEmployee(value)}
         >
           <Picker.Item key="all" label="Todos" value="all" />
           {employees.map((employee) => (
@@ -272,17 +263,14 @@ const SalesDashboard = () => {
           data={filteredData}
           keyExtractor={(item) => item.employeeId.toString()}
           renderItem={({ item }) => (
-            console.log("Item:", item), // Verifique o conteúdo de item
-            (
-              <View style={styles.itemRow}>
-                <Text style={styles.itemName}>
-                  {item.name || "Nome não disponível"}
-                </Text>
-                <Text style={styles.itemPrice}>
-                  R$ {item.totalSales.toFixed(2)}
-                </Text>
-              </View>
-            )
+            <View style={styles.itemRow}>
+              <Text style={styles.itemName}>
+                {item.name || "Nome não disponível"}
+              </Text>
+              <Text style={styles.itemPrice}>
+                R$ {item.totalSales.toFixed(2)}
+              </Text>
+            </View>
           )}
           ListEmptyComponent={() => (
             <Text style={styles.emptyMessage}>
