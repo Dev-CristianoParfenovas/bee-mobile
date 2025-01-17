@@ -57,82 +57,59 @@ const SalesDashboard = () => {
     }
   };
 
-  const calculateTotalSalesByEmployee = (sales, selectedEmployeeId = "all") => {
-    const salesByEmployee = {};
-
-    sales.forEach((sale) => {
-      const { employee_id, total_price, employee_name } = sale;
-
-      // Aplicando o filtro de funcionário corretamente
-      if (selectedEmployeeId !== "all" && employee_id !== selectedEmployeeId) {
-        return; // Ignora vendas de outros funcionários
-      }
-
-      // Se ainda não existe o funcionário no objeto, inicializa
-      if (!salesByEmployee[employee_id]) {
-        salesByEmployee[employee_id] = {
-          employeeId: employee_id,
-          name: employee_name || `Funcionário ${employee_id}`,
-          totalSales: 0,
-        };
-      }
-
-      // Soma o total de vendas do funcionário
-      salesByEmployee[employee_id].totalSales += parseFloat(total_price) || 0;
-    });
-
-    // Retorna os dados filtrados para os funcionários
-    return Object.values(salesByEmployee);
-  };
-
   const fetchSales = async () => {
     try {
-      let startOfDay = new Date(startDate);
+      const startOfDay = new Date(startDate);
       startOfDay.setUTCHours(0, 0, 0, 0);
-      let endOfDay = new Date(endDate);
+
+      const endOfDay = new Date(endDate);
       endOfDay.setUTCHours(23, 59, 59, 999);
 
       let url = `/sales/${companyId}/date-range?startDate=${startOfDay.toISOString()}&endDate=${endOfDay.toISOString()}`;
 
-      let employeeId = selectedEmployee === "all" ? null : selectedEmployee;
-      let clientId = selectedClient === "all" ? null : selectedClient;
+      if (selectedEmployee && selectedEmployee !== "all") {
+        url += `&employee_id=${selectedEmployee}`;
+      }
 
-      // Adicionar os filtros apenas se forem diferentes de 'all' ou null
-      if (employeeId) {
-        url += `&employeeId=${employeeId}`;
+      if (selectedClient !== "all") {
+        url += `&client_id=${selectedClient}`;
       }
-      if (clientId) {
-        url += `&clientId=${clientId}`;
-      }
+
+      console.log("URL para fetchSales:", url);
 
       const response = await api.get(url, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-      console.log("Resposta da API:", response.data);
-
       if (response.data && Array.isArray(response.data)) {
-        // Filtrar as vendas pelo employeeId selecionado
-        const filteredSales = response.data.filter(
-          (sale) =>
-            selectedEmployee === "all" || sale.employee_id === selectedEmployee
-        );
+        const salesData = response.data.reduce((acc, sale) => {
+          const { employee_id, employee_name, total_price } = sale;
 
-        const salesData = calculateTotalSalesByEmployee(
-          filteredSales,
-          selectedEmployee
-        );
-        setFilteredData(salesData);
-        console.log("Filtered Data:", salesData); // Verifique os dados filtrados
+          if (!acc[employee_id]) {
+            acc[employee_id] = {
+              employeeId: employee_id,
+              name: employee_name || "Nome não informado",
+              totalSales: 0,
+            };
+          }
+          acc[employee_id].totalSales += parseFloat(total_price) || 0;
+          return acc;
+        }, {});
+
+        setFilteredData(Object.values(salesData));
       } else {
+        console.warn("Formato inesperado nos dados de vendas:", response.data);
         setFilteredData([]);
       }
     } catch (error) {
       console.error("Erro ao buscar vendas:", error);
+      setFilteredData([]);
     }
   };
 
   useEffect(() => {
+    console.log("Selected Employee Changed:", selectedEmployee);
+    console.log("Employees List Loaded:", employees);
     fetchEmployees();
     fetchClients();
     fetchSales();
@@ -161,16 +138,22 @@ const SalesDashboard = () => {
       <View style={styles.containerfunc}>
         <Picker
           selectedValue={selectedEmployee}
-          onValueChange={(value) => setSelectedEmployee(value)}
+          onValueChange={(value) => {
+            console.log("Picker Employee Value:", value); // Verificar valor selecionado
+            setSelectedEmployee(value);
+          }}
         >
           <Picker.Item key="all" label="Todos" value="all" />
-          {employees.map((employee) => (
-            <Picker.Item
-              key={`employee-${employee.id}`} // Usando uma chave única para cada item
-              label={employee.name}
-              value={employee.id}
-            />
-          ))}
+          {employees.map((employee) => {
+            console.log("Employee Item:", employee); // Log de cada funcionário
+            return (
+              <Picker.Item
+                key={`employee-${employee.id_employee}`}
+                label={employee.name}
+                value={employee.id_employee}
+              />
+            );
+          })}
         </Picker>
       </View>
 
@@ -185,7 +168,7 @@ const SalesDashboard = () => {
             <Picker.Item
               key="error"
               label="Erro ao carregar clientes"
-              value=""
+              value="all"
             />
           ) : (
             clients.map((client) => (
@@ -261,7 +244,7 @@ const SalesDashboard = () => {
       <View style={styles.orderSummary}>
         <FlatList
           data={filteredData}
-          keyExtractor={(item) => item.employeeId.toString()}
+          keyExtractor={(item) => String(item.employeeId)}
           renderItem={({ item }) => (
             <View style={styles.itemRow}>
               <Text style={styles.itemName}>
