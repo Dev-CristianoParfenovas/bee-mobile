@@ -71,7 +71,7 @@ const SalesDashboard = () => {
         url += `&employee_id=${selectedEmployee}`;
       }
 
-      if (selectedClient !== "all") {
+      if (selectedClient && selectedClient !== "all") {
         url += `&client_id=${selectedClient}`;
       }
 
@@ -80,6 +80,9 @@ const SalesDashboard = () => {
       const response = await api.get(url, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
+
+      // Log para inspecionar os dados retornados
+      console.log("Dados filtrados retornados:", response.data);
 
       if (response.data && Array.isArray(response.data)) {
         const salesData = response.data.reduce((acc, sale) => {
@@ -110,6 +113,7 @@ const SalesDashboard = () => {
   useEffect(() => {
     console.log("Selected Employee Changed:", selectedEmployee);
     console.log("Employees List Loaded:", employees);
+    console.log("Selected Client Changed:", selectedClient);
     fetchEmployees();
     fetchClients();
     fetchSales();
@@ -161,7 +165,9 @@ const SalesDashboard = () => {
       <View style={styles.containerfunc}>
         <Picker
           selectedValue={selectedClient}
-          onValueChange={(itemValue) => setSelectedClient(itemValue)}
+          onValueChange={(itemValue) => {
+            setSelectedClient(itemValue); // Atualiza o estado do cliente
+          }}
         >
           <Picker.Item key="all" label="Todos" value="all" />
           {clientsError ? (
@@ -173,9 +179,9 @@ const SalesDashboard = () => {
           ) : (
             clients.map((client) => (
               <Picker.Item
-                key={`client-${client.id}`} // Usando uma chave única para cada item
+                key={`client-${client.id_client}`}
                 label={client.name}
-                value={client.id}
+                value={client.id_client}
               />
             ))
           )}
@@ -185,7 +191,8 @@ const SalesDashboard = () => {
       {selectedClient !== "all" && (
         <Text style={styles.selectedEmployeeText}>
           Cliente Selecionado:{" "}
-          {clients.find((c) => c.id === selectedClient)?.name || "Desconhecido"}
+          {clients.find((c) => c.id_client === selectedClient)?.name ||
+            "Desconhecido"}
         </Text>
       )}
 
