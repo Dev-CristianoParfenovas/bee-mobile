@@ -8,9 +8,13 @@ import {
   TextInput,
   FlatList,
   ActivityIndicator,
+  ScrollView,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { debounce } from "lodash"; // Para debounce, instale lodash (npm install lodash)
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
+import { MaterialIcons, FontAwesome, Ionicons } from "@expo/vector-icons"; // Biblioteca de ícones
 import { styles } from "./products_registration_screen.js";
 import Button from "../../components/button/button.jsx";
 import ButtonSearch from "../../components/button_search/button_search.jsx";
@@ -23,6 +27,8 @@ import getStoredData from "../../utils/getStoredData"; // Importa o utilitário 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import TextBox from "../../components/textbox/textbox.jsx";
 import * as ImagePicker from "expo-image-picker"; // Importa o ImagePicker
+import { useCameraPermission } from "../../context/CameraPermissionContext.jsx";
+import { CameraView } from "expo-camera";
 
 function ProductsRegistrationScreen() {
   const [name, setName] = useState("");
@@ -40,7 +46,11 @@ function ProductsRegistrationScreen() {
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState(null);
+  const [isScannerActive, setIsScannerActive] = useState(false);
+  const { hasPermission, requestPermission, isLoading } = useCameraPermission();
 
+  const [scannedCode, setScannedCode] = useState();
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   // Função para buscar categorias
   const fetchCategories = async (token, companyId) => {
     try {
@@ -362,6 +372,50 @@ function ProductsRegistrationScreen() {
     }
   };
 
+  // Função para solicitar permissão da câmera
+  const handleOpenScanner = async () => {
+    if (isLoading) {
+      return; // Aguarda enquanto as permissões estão sendo carregadas
+    }
+
+    if (hasPermission) {
+      setIsCameraOpen(true); // Abre a câmera
+      setIsScannerActive(true); // Ativa o scanner
+      console.log("Scanner ativado.");
+    } else {
+      await requestPermission(); // Solicita permissão novamente
+      if (!hasPermission) {
+        Alert.alert(
+          "Permissão Negada",
+          "É necessário conceder permissão para acessar a câmera."
+        );
+      }
+    }
+  };
+
+  // Função chamada após escanear o código de barras
+  const handleBarCodeScanned = ({ data }) => {
+    console.log("Código escaneado:", data); // Log para verificar o valor escaneado
+    setIsScannerActive(false); // Desativa o scanner após leitura
+    setScannedCode(data); // Atualiza o código escaneado no estado
+    setIsCameraOpen(false); // Fecha a câmera
+    Alert.alert(
+      "Código Escaneado",
+      `O código escaneado foi: ${data}`,
+      [{ text: "OK", onPress: () => setIsScannerActive(false) }],
+      { cancelable: false }
+    );
+  };
+
+  // Verifica o estado de carregamento da permissão
+  if (isLoading) {
+    return <Text>Carregando permissões...</Text>;
+  }
+
+  useEffect(() => {
+    console.log("hasPermission:", hasPermission); // Verifique se o estado está sendo atualizado corretamente
+  }, [hasPermission]);
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -376,180 +430,232 @@ function ProductsRegistrationScreen() {
         <Text style={styles.headerTitle}>Cadastro de Produtos</Text>
       </View>
 
-      {/* Campo de Busca */}
-      <View style={styles.containerInput}>
-        <View style={styles.inputWithIcon}>
-          <MaterialIcons name="search" size={24} color={COLORS.gray3} />
-          <TextBox
-            onfocus={false}
-            placeholder="Buscar Produto"
-            placeholderTextColor={COLORS.gray3}
-            value={search}
-            onChangeText={setSearch}
-            style={styles.input}
-          />
-        </View>
-        <View style={styles.containerbtnSearch}>
-          <ButtonSearch text="Buscar" onPress={handleChangeSearch} />
-          <ButtonSearch text="Voltar lista" onPress={resetProductsList} />
-        </View>
-      </View>
-
-      {/* Picker de Categorias */}
-      <View style={styles.containerInput}>
-        <Text style={styles.textpicker}>Selecione uma Categoria:</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={selectedCategory}
-            onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Selecione uma Categoria" value="" />
-            {categories.map((category) => (
-              <Picker.Item
-                key={category.id}
-                label={category.name}
-                value={category.id}
-              />
-            ))}
-          </Picker>
-        </View>
-      </View>
-
-      {/* Botão para selecionar imagem */}
-      <View style={styles.imagePickerContainer}>
-        <ButtonSearch
-          text=" Galeria"
-          onPress={pickImage}
-          icon="image" // Passando o ícone de imagem
-          iconColor="#fff" // Cor do ícone, caso queira customizar
-          style={styles.imageButton}
-        />
-
-        <ButtonSearch
-          text=" Tirar Foto"
-          onPress={takePhoto}
-          icon="camera" // Passando o ícone de imagem
-          iconColor="#fff" // Cor do ícone, caso queira customizar
-          style={styles.imageButton}
-        />
-      </View>
-
-      {/* Exibe a imagem selecionada ou capturada */}
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-      )}
-
-      {/* Campos Nome, Preço e Estoque */}
-      <View style={styles.containerInput}>
-        <View style={styles.inputWithIcon}>
-          <MaterialIcons name="inventory" size={24} color={COLORS.gray3} />
-          <TextBox
-            onfocus={true}
-            placeholder="Nome do Produto"
-            placeholderTextColor={COLORS.gray3}
-            value={name}
-            onChangeText={setName}
-            style={[styles.input, errors.name ? styles.inputError : null]}
-          />
-        </View>
-        <View style={styles.containerRow}>
-          <View style={[styles.inputWithIcon, styles.inputHalf]}>
-            <MaterialIcons name="attach-money" size={24} color={COLORS.gray3} />
-            <TextBox
-              maskType="money"
-              onfocus={false}
-              placeholder="Preço"
-              placeholderTextColor={COLORS.gray3}
-              value={price}
-              onChangeText={(text) => setPrice(text)}
-              style={[styles.input, errors.price ? styles.inputError : null]}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={[styles.inputWithIcon, styles.inputHalf]}>
-            <FontAwesome name="cube" size={24} color={COLORS.gray3} />
+      {/* ScrollView com o conteúdo acima do botão Cadastrar Produto */}
+      <ScrollView>
+        {/* Campo de Busca */}
+        <View style={styles.containerInput}>
+          <View style={styles.inputWithIcon}>
+            <MaterialIcons name="search" size={24} color={COLORS.gray3} />
             <TextBox
               onfocus={false}
-              placeholder="Estoque"
+              placeholder="Buscar Produto"
               placeholderTextColor={COLORS.gray3}
-              value={quantity}
-              onChangeText={setQuantity}
+              value={search}
+              onChangeText={setSearch}
               style={styles.input}
-              keyboardType="numeric"
             />
           </View>
+          <View style={styles.containerbtnSearch}>
+            <ButtonSearch text="Buscar" onPress={handleChangeSearch} />
+            <ButtonSearch text="Voltar lista" onPress={resetProductsList} />
+          </View>
         </View>
+
+        {/* Picker de Categorias */}
+        <View style={styles.containerInput}>
+          <Text style={styles.textpicker}>Selecione uma Categoria:</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={selectedCategory}
+              onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecione uma Categoria" value="" />
+              {categories.map((category) => (
+                <Picker.Item
+                  key={category.id}
+                  label={category.name}
+                  value={category.id}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        {/* Botão para selecionar imagem */}
+        <View style={styles.imagePickerContainer}>
+          <ButtonSearch
+            text=" Galeria"
+            onPress={pickImage}
+            icon="image"
+            iconColor="#fff"
+            style={styles.imageButton}
+          />
+          <ButtonSearch
+            text=" Tirar Foto"
+            onPress={takePhoto}
+            icon="camera"
+            iconColor="#fff"
+            style={styles.imageButton}
+          />
+        </View>
+
+        {/* Exibe a imagem selecionada ou capturada */}
+        {imageUri && (
+          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+        )}
+
+        {/* Campos Nome, Preço e Estoque */}
+
+        <View style={styles.containerInput}>
+          {isCameraOpen ? (
+            <>
+              {console.log("Camera Open: ", isCameraOpen)}
+              {Platform.OS === "android" && <StatusBar hidden />}
+
+              <CameraView
+                style={styles.camera}
+                facing="back"
+                //onBarCodeScanned={handleBarCodeScanned} // Passando a função diretamente}}
+                onBarcodeScanned={({ data }) => {
+                  console.log(data);
+                  setScannedCode(data);
+                  setIsScannerActive(false);
+                  setIsCameraOpen(false);
+                }}
+                barCodeScannerSettings={{
+                  barCodeTypes: [
+                    "ean13",
+                    "qr",
+                    "upce",
+                    "code128",
+                    "ean8",
+                    "pdf417",
+                  ], // Tipos de código de barras e QR suportados
+                }}
+              >
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => {
+                    setIsCameraOpen(false);
+                    setIsScannerActive(false);
+                  }}
+                >
+                  <Text style={styles.closeButtonText}>Fechar</Text>
+                </TouchableOpacity>
+              </CameraView>
+            </>
+          ) : (
+            <View style={styles.inputWithIcon}>
+              <TouchableOpacity
+                onPress={() => {
+                  handleOpenScanner();
+                }}
+              >
+                <Text style={styles.cameraIcon}>📷</Text>
+              </TouchableOpacity>
+
+              <TextBox
+                placeholder="Código de Barras"
+                placeholderTextColor="#888"
+                style={styles.input}
+                value={scannedCode} // Exibe o código escaneado
+                onChangeText={setScannedCode} // Sincroniza o estado com o TextBox
+                editable={false} // Campo somente leitura após escanear
+              />
+            </View>
+          )}
+
+          <View style={styles.inputWithIcon}>
+            <MaterialIcons name="inventory" size={24} color={COLORS.gray3} />
+            <TextBox
+              onfocus={true}
+              placeholder="Nome do Produto"
+              placeholderTextColor={COLORS.gray3}
+              value={name}
+              onChangeText={setName}
+              style={[styles.input, errors.name ? styles.inputError : null]}
+            />
+          </View>
+          <View style={styles.containerRow}>
+            <View style={[styles.inputWithIcon, styles.inputHalf]}>
+              <MaterialIcons
+                name="attach-money"
+                size={24}
+                color={COLORS.gray3}
+              />
+              <TextBox
+                maskType="money"
+                onfocus={false}
+                placeholder="Preço"
+                placeholderTextColor={COLORS.gray3}
+                value={price}
+                onChangeText={(text) => setPrice(text)}
+                style={[styles.input, errors.price ? styles.inputError : null]}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={[styles.inputWithIcon, styles.inputHalf]}>
+              <FontAwesome name="cube" size={24} color={COLORS.gray3} />
+              <TextBox
+                onfocus={false}
+                placeholder="Estoque"
+                placeholderTextColor={COLORS.gray3}
+                value={quantity}
+                onChangeText={setQuantity}
+                style={styles.input}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Botão Cadastrar Produto */}
+      <View style={styles.bottomButtonContainer}>
+        <Button text="Cadastrar Produto" onPress={handleCreateProduct} />
       </View>
 
-      <Button text="Cadastrar Produto" onPress={handleCreateProduct} />
+      {/* FlatList de Produtos */}
+      <FlatList
+        data={products}
+        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => {
+          if (!item || !item.id) return null;
 
-      {/* Lista de Produtos */}
-      {/* Lista de Produtos */}
-      {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      ) : (
-        <FlatList
-          data={products}
-          keyExtractor={(item, index) =>
-            item.id?.toString() || index.toString()
-          } // Verificação de 'item'
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => {
-            // Verificação adicional para garantir que o item existe
-            if (!item || !item.id) return null; // Não renderiza o item se não houver um 'id' válido
-
-            return (
-              <View style={styles.productCard}>
-                {/* Nome do Produto */}
-                <Text style={styles.productName}>{item.name}</Text>
-
-                {/* Detalhes do Produto */}
-                <Text style={styles.productDetails}>
-                  Preço: R$ {item.price} | Estoque:{" "}
-                  {item.quantity > 0 ? item.quantity : "Sem estoque"}
-                </Text>
-
-                {/* Botões de Ação */}
-                <View style={styles.buttonsContainer}>
-                  {/* Botão Selecionar */}
-                  <TouchableOpacity
-                    onPress={() => {
-                      setSelectedProductId(item.id);
-                      setName(item.name);
-                      setPrice(item.price);
-                      setQuantity(item.quantity?.toString() || "0");
-                      setSelectedCategory(item.category_id ?? null);
-                    }}
-                    style={styles.selecionarButton}
-                    accessibilityLabel={`Selecionar produto ${item.name}`}
-                  >
-                    <MaterialIcons
-                      name="check-circle"
-                      size={24}
-                      color={COLORS.gray3}
-                    />
-                    <Text style={styles.selecionarButtonText}>Selecionar</Text>
-                  </TouchableOpacity>
-
-                  {/* Botão Remover */}
-                  <TouchableOpacity
-                    style={styles.removeButtonContainer}
-                    onPress={() => confirmRemove(item.id)}
-                    accessibilityLabel={`Remover produto ${item.name}`}
-                  >
-                    <MaterialIcons name="delete" size={24} color={COLORS.red} />
-                    <Text style={styles.removeButtonText}>Remover</Text>
-                  </TouchableOpacity>
-                </View>
+          return (
+            <View style={styles.productCard}>
+              <Text style={styles.productName}>{item.name}</Text>
+              <Text style={styles.productDetails}>
+                Preço: R$ {item.price} | Estoque:{" "}
+                {item.quantity > 0 ? item.quantity : "Sem estoque"}
+              </Text>
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedProductId(item.id);
+                    setName(item.name);
+                    setPrice(item.price);
+                    setQuantity(item.quantity?.toString() || "0");
+                    setSelectedCategory(item.category_id ?? null);
+                  }}
+                  style={styles.selecionarButton}
+                  accessibilityLabel={`Selecionar produto ${item.name}`}
+                >
+                  <MaterialIcons
+                    name="check-circle"
+                    size={24}
+                    color={COLORS.gray3}
+                  />
+                  <Text style={styles.selecionarButtonText}>Selecionar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.removeButtonContainer}
+                  onPress={() => confirmRemove(item.id)}
+                  accessibilityLabel={`Remover produto ${item.name}`}
+                >
+                  <MaterialIcons name="delete" size={24} color={COLORS.red} />
+                  <Text style={styles.removeButtonText}>Remover</Text>
+                </TouchableOpacity>
               </View>
-            );
-          }}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          contentContainerStyle={{ paddingBottom: 20 }} // Evita que o último item fique colado no rodapé
-          style={{ marginTop: 20 }}
-        />
-      )}
+            </View>
+          );
+        }}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        style={{ marginTop: 20 }}
+      />
     </View>
   );
 }

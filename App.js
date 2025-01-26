@@ -5,6 +5,7 @@ import RoutesAuth from "./src/routesAuth";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import { UserProvider } from "./src/context/UserContext"; // Importe o UserProvider
 import { CartProvider } from "./src/context/CartContext";
+import { CameraPermissionProvider } from "./src/context/CameraPermissionContext";
 
 function AppContent() {
   const { isAuthenticated, setIsAuthenticated } = useAuth();
@@ -26,7 +27,9 @@ export default function App() {
     <AuthProvider>
       <UserProvider>
         <CartProvider>
-          <AppContent />
+          <CameraPermissionProvider>
+            <AppContent />
+          </CameraPermissionProvider>
         </CartProvider>
       </UserProvider>
     </AuthProvider>

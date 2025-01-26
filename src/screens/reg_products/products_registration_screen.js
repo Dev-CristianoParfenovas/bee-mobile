@@ -11,6 +11,12 @@ export const styles = StyleSheet.create({
     paddingTop: 1,
     paddingBottom: 35,
   },
+  scrollContent: {
+    flexGrow: 1, // Garante que o conteúdo se adapte à altura da tela
+    paddingHorizontal: 20, // Espaçamento lateral do conteúdo
+    paddingBottom: 75, // Espaço extra para evitar sobreposição do botão fixo
+    marginBottom: 45,
+  },
   container: {
     flex: 1,
     paddingTop: 55,
@@ -18,12 +24,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: COLORS.blueprincipal,
   },
-  watermark: {
-    position: "absolute",
-    width: 350, // Largura desejada para o logo
-    height: 350, // Altura desejada para o logo
-    alignSelf: "center", // Centraliza horizontalmente
-    top: "46%", // Ajusta a posição vertical
+  containerproducts: {
+    flex: 1,
   },
 
   containerInput: {
@@ -46,7 +48,7 @@ export const styles = StyleSheet.create({
   input: {
     flex: 1,
     marginLeft: 10,
-    color: COLORS.white,
+    color: COLORS.black,
     fontSize: FONT_SIZE.md,
   },
   inputError: {
@@ -189,8 +191,10 @@ export const styles = StyleSheet.create({
   },
   containerbtnSearch: {
     flexDirection: "row",
-    justifyContent: "space-between", // Isso distribui os botões com o máximo de espaço entre eles
-    width: "100%", // Garantir que o container ocupe toda a largura disponível
+    justifyContent: "space-between", // Distribui os botões com o máximo de espaço entre eles
+    width: "100%", // Garante que o container ocupe toda a largura disponível
+    marginTop: 0, // Remover margem superior, caso haja
+    paddingTop: 0, // Garantir que não haja padding no topo
   },
 
   imagePickerContainer: {
@@ -208,5 +212,70 @@ export const styles = StyleSheet.create({
     height: 200,
     marginTop: 20,
     borderRadius: 10,
+  },
+  bottomButtonContainer: {
+    marginTop: 50, // Adiciona espaçamento extra entre o conteúdo e o botão "Cadastrar Produto"
+    paddingBottom: 2, // Garantir que o botão tenha um espaçamento adequado na parte inferior
+  },
+
+  bottomContainer: {
+    marginTop: 10, // Aumenta o espaçamento entre o ScrollView e o FlatList
+    paddingBottom: 20, // Adiciona padding no fundo para o FlatList
+  },
+
+  camera: {
+    flex: 1,
+    // flexDirection: "row",
+    //  justifyContent: "center",
+    // alignItems: "center",
+    width: "100%",
+    height: 100,
+  },
+  buttonContainer: {
+    position: "absolute",
+    bottom: 20, // Coloca os botões na parte inferior
+    width: "100%", // Garante que o container ocupe toda a largura
+    alignItems: "center", // Centraliza horizontalmente
+  },
+  openButton: {
+    backgroundColor: COLORS.bluebtn, // Mantém a cor do botão
+    paddingVertical: 12, // Um pouco mais de altura no botão
+    paddingHorizontal: 20, // Um pouco mais de largura no botão
+    borderRadius: 10, // Bordas levemente mais arredondadas
+    marginVertical: 10, // Maior espaçamento entre os botões
+    width: "70%", // Largura menor para harmonizar no centro
+    flexDirection: "row", // Para alinhar ícone e texto
+    justifyContent: "center", // Centraliza o conteúdo
+    alignItems: "center", // Centraliza verticalmente ícone e texto
+  },
+  openButtonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZE.lg, // Aumenta o tamanho do texto
+    fontWeight: "600", // Um peso de fonte médio para diferenciar
+    marginLeft: 10, // Espaçamento entre o ícone e o texto
+  },
+
+  closeButton: {
+    backgroundColor: COLORS.red,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginVertical: 10,
+    width: "20%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: "600",
+    marginLeft: 38,
+    width: 100,
+  },
+
+  cameraIcon: {
+    fontSize: 18,
+    marginRight: 10,
   },
 });
