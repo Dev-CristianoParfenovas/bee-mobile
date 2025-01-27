@@ -34,6 +34,10 @@ function ProductsRegistrationScreen() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [barcode, setBarcode] = useState("");
+  const [aliquota, setAliquota] = useState("");
+  const [ncm, setNcm] = useState("");
+  const [cfop, setCfop] = useState("");
   const [search, setSearch] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -268,6 +272,10 @@ function ProductsRegistrationScreen() {
         id: selectedProductId || null, // Se não houver ID, será enviado `null`
         name,
         price: formattedPrice,
+        barcode,
+        ncm,
+        aliquota,
+        cfop,
         stock: formattedQuantity,
         category_id: selectedCategory,
         company_id: companyId,
@@ -305,6 +313,10 @@ function ProductsRegistrationScreen() {
       setSelectedProductId(null);
       setName("");
       setPrice("");
+      setBarcode("");
+      setNcm("");
+      setAliquota("");
+      setCfop("");
       setQuantity("");
       setSelectedCategory("");
     } catch (error) {
@@ -585,6 +597,7 @@ function ProductsRegistrationScreen() {
                 keyboardType="numeric"
               />
             </View>
+
             <View style={[styles.inputWithIcon, styles.inputHalf]}>
               <FontAwesome name="cube" size={24} color={COLORS.gray3} />
               <TextBox
@@ -594,6 +607,54 @@ function ProductsRegistrationScreen() {
                 value={quantity}
                 onChangeText={setQuantity}
                 style={styles.input}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+          {/* tributção*/}
+          <View style={styles.containerRowTrib}>
+            <Text style={styles.containerAliqTrib}>Aliquota</Text>
+            <Text style={styles.containerNcmTrib}>NCM</Text>
+            <Text style={styles.containerCfopTrib}>CFOP</Text>
+          </View>
+
+          <View style={styles.containerRowTrib}>
+            <View style={[styles.inputWithIcon, styles.inputHalfTrib]}>
+              <TextBox
+                maskType="money"
+                onfocus={false}
+                leftIcon="percent"
+                placeholder="Alíq."
+                placeholderTextColor={COLORS.gray3}
+                value={aliquota}
+                onChangeText={(text) => setAliquota(text)}
+                style={[styles.input, , styles.fontTrib]}
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={[styles.inputWithIcon, styles.inputHalfTrib]}>
+              <TextBox
+                onfocus={false}
+                leftIcon="note"
+                fontSize={12}
+                placeholder="Ncm"
+                placeholderTextColor={COLORS.gray3}
+                value={ncm}
+                onChangeText={(text) => setNcm(text)}
+                style={[styles.input, styles.fontTrib]}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={[styles.inputWithIcon, styles.inputHalfTrib]}>
+              <TextBox
+                onfocus={false}
+                leftIcon="gavel"
+                placeholder="Cfop"
+                placeholderTextColor={COLORS.gray3}
+                value={cfop}
+                onChangeText={(text) => setCfop(text)}
+                style={[styles.input, , styles.fontTrib]}
                 keyboardType="numeric"
               />
             </View>

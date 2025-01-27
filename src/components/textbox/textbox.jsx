@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextInput, TouchableOpacity, View } from "react-native";
+import { TextInput, TouchableOpacity, View, Text } from "react-native";
 import { styles } from "./textbox.style";
 import { COLORS } from "../../constants/theme";
 import { MaterialIcons } from "@expo/vector-icons"; // Biblioteca de ícones
@@ -13,16 +13,21 @@ function TextBox(props) {
   };
 
   const renderInput = () => {
+    const inputStyle = [
+      styles.input,
+      { fontSize: props.fontSize || 16 }, // Define o tamanho da fonte dinamicamente
+    ];
+
     if (props.maskType === "phone") {
       return (
         <TextInputMask
           type="cel-phone"
           options={{
-            maskType: "BRL", // Máscara brasileira
-            withDDD: true, // Inclui o DDD
-            dddMask: "(99) ", // Formato do DDD
+            maskType: "BRL",
+            withDDD: true,
+            dddMask: "(99) ",
           }}
-          style={styles.input}
+          style={inputStyle}
           placeholder={props.placeholder}
           placeholderTextColor={props.placeholderTextColor || COLORS.gray3}
           value={props.value}
@@ -36,12 +41,12 @@ function TextBox(props) {
           type="money"
           options={{
             precision: 2,
-            separator: ".", // Define o separador decimal
-            delimiter: ".", // Define o delimitador de milhares
-            unit: "", // Remove o prefixo
-            suffixUnit: "", // Remove o sufixo
+            separator: ".",
+            delimiter: ".",
+            unit: "",
+            suffixUnit: "",
           }}
-          style={styles.input}
+          style={inputStyle}
           placeholder={props.placeholder}
           placeholderTextColor={props.placeholderTextColor || COLORS.gray3}
           value={props.value}
@@ -52,7 +57,7 @@ function TextBox(props) {
     }
     return (
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         onFocus={props.onFocus}
         placeholder={props.placeholder}
         placeholderTextColor={props.placeholderTextColor || COLORS.gray3}
@@ -67,6 +72,17 @@ function TextBox(props) {
 
   return (
     <View style={[styles.container, props.style]}>
+      {props.label && (
+        <Text style={[styles.label, props.labelStyle]}>{props.label}</Text>
+      )}
+      {props.leftIcon && (
+        <MaterialIcons
+          name={props.leftIcon}
+          size={20}
+          color={COLORS.gray3}
+          style={styles.leftIcon}
+        />
+      )}
       {renderInput()}
       {props.isPassword && (
         <TouchableOpacity

@@ -91,9 +91,36 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  containerRowTrib: {
+    flexDirection: "row",
+    marginHorizontal: 10,
+  },
+  containerAliqTrib: {
+    color: COLORS.white,
+    marginHorizontal: 10,
+  },
+  containerNcmTrib: {
+    marginHorizontal: 40,
+    color: COLORS.white,
+  },
+  containerCfopTrib: {
+    marginHorizontal: 28,
+    color: COLORS.white,
+  },
+
   inputHalf: {
     flex: 1,
     marginHorizontal: 5,
+  },
+  inputHalfTrib: {
+    flex: 1,
+    marginHorizontal: 3,
+  },
+  iconTrib: {
+    marginRight: 5,
+  },
+  fontTrib: {
+    flexDirection: "row",
   },
   pickerContainer: {
     marginBottom: 20,
@@ -225,6 +252,7 @@ export const styles = StyleSheet.create({
 
   camera: {
     flex: 1,
+    borderRadius: 10,
     // flexDirection: "row",
     //  justifyContent: "center",
     // alignItems: "center",
