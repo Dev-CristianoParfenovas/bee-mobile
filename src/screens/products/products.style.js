@@ -145,4 +145,35 @@ export const styles = StyleSheet.create({
     color: "#333", // Cor do texto
     fontWeight: "bold", // Peso do texto
   },
+  cameraIcon: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  camera: {
+    flex: 1,
+    borderRadius: 10,
+    // flexDirection: "row",
+    //  justifyContent: "center",
+    // alignItems: "center",
+    width: "100%",
+    height: 100,
+  },
+  closeButton: {
+    backgroundColor: COLORS.red,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginVertical: 10,
+    width: "20%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZE.sm,
+    fontWeight: "600",
+    marginLeft: 38,
+    width: 100,
+  },
 });

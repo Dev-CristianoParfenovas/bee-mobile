@@ -6,6 +6,8 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  Platform,
+  StatusBar,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +19,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useCart } from "../../context/CartContext.jsx";
 import api from "../../constants/api.js";
 import { useRoute } from "@react-navigation/native";
+import { useCameraPermission } from "../../context/CameraPermissionContext.jsx";
+import { CameraView } from "expo-camera";
 
 function Products(props) {
   const { userName } = useAuth();
@@ -27,6 +31,11 @@ function Products(props) {
   const { addToCart, cartItems } = useCart(); // Usa o contexto do carrinho
   const [products, setProducts] = useState([]); // Estado para armazenar os produtos
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const { hasPermission, requestPermission, isLoading } = useCameraPermission();
+  const [barcode, setBarcode] = useState("");
+  const [isScannerActive, setIsScannerActive] = useState(false);
+  const [scannedCode, setScannedCode] = useState();
 
   // Pega o customer e employee da navegação
   const route = useRoute();
@@ -94,16 +103,51 @@ function Products(props) {
       { text: "Continuar comprando", style: "cancel" },
     ]);
   };
-  /* const handleAddToCart = (item) => {
-    addToCart(item, 1);
-    Alert.alert("Carrinho", `${item.name} foi adicionado ao carrinho!`, [
-      {
-        text: "Ir para o carrinho",
-        onPress: () => navigation.navigate("Carrinho"),
-      },
-      { text: "Continuar comprando", style: "cancel" },
-    ]);
-  };*/
+
+  // Função para solicitar permissão da câmera
+  const handleOpenScanner = async () => {
+    if (isLoading) {
+      return; // Aguarda enquanto as permissões estão sendo carregadas
+    }
+
+    if (hasPermission) {
+      setIsCameraOpen(true); // Abre a câmera
+      setIsScannerActive(true); // Ativa o scanner
+      console.log("Scanner ativado.");
+    } else {
+      await requestPermission(); // Solicita permissão novamente
+      if (!hasPermission) {
+        Alert.alert(
+          "Permissão Negada",
+          "É necessário conceder permissão para acessar a câmera."
+        );
+      }
+    }
+  };
+
+  useEffect(() => {
+    console.log("hasPermission:", hasPermission); // Verifique se o estado está sendo atualizado corretamente
+  }, [hasPermission]);
+
+  // Verifica o estado de carregamento da permissão
+  if (isLoading) {
+    return <Text>Carregando permissões...</Text>;
+  }
+
+  const handleBarcodeScanned = (barcode) => {
+    const scannedProduct = products.find(
+      (product) => product.barcode === barcode
+    );
+
+    if (scannedProduct) {
+      handleAddToCart(scannedProduct); // Adiciona o produto ao carrinho
+    } else {
+      Alert.alert(
+        "Produto não encontrado",
+        "Nenhum produto corresponde a este código de barras."
+      );
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -155,6 +199,68 @@ function Products(props) {
           value={searchText}
           onChangeText={handleSearch}
         />
+      </View>
+      <View style={styles.searchContainer}>
+        {isCameraOpen ? (
+          <>
+            {/* Log para depuração */}
+            {console.log("Camera Open: ", isCameraOpen)}
+
+            {/* Oculta o StatusBar no Android quando a câmera está aberta */}
+            {Platform.OS === "android" && <StatusBar hidden />}
+
+            <CameraView
+              style={styles.camera}
+              facing="back"
+              onBarcodeScanned={({ data }) => {
+                console.log(data); // Exibe o código escaneado no console
+                setScannedCode(data);
+                handleBarcodeScanned(data); // Verifica e adiciona o produto ao carrinho
+                setBarcode(data);
+                setIsScannerActive(false);
+                setIsCameraOpen(false);
+                setBarcode("");
+              }}
+              barCodeScannerSettings={{
+                barCodeTypes: [
+                  "ean13",
+                  "qr",
+                  "upce",
+                  "code128",
+                  "ean8",
+                  "pdf417",
+                ], // Tipos de códigos de barras suportados
+              }}
+            >
+              {/* Botão para fechar a câmera */}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  setIsCameraOpen(false);
+                  setIsScannerActive(false);
+                }}
+              >
+                <Text style={styles.closeButtonText}>Fechar</Text>
+              </TouchableOpacity>
+            </CameraView>
+          </>
+        ) : (
+          <>
+            {/* Botão para abrir a câmera */}
+            <TouchableOpacity onPress={() => setIsCameraOpen(true)}>
+              <Text style={styles.cameraIcon}>📷</Text>
+            </TouchableOpacity>
+
+            {/* Campo de texto para o código de barras */}
+            <TextBox
+              placeholder="Código de Barras"
+              style={styles.searchInput}
+              value={barcode} // Exibe o código escaneado
+              onChangeText={(text) => setBarcode(text)} // Atualiza o estado com o valor digitado
+              editable={!isScannerActive} // Campo somente leitura após o escaneamento
+            />
+          </>
+        )}
       </View>
 
       {/* Lista de Produtos */}

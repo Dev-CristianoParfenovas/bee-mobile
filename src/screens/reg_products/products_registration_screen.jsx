@@ -52,7 +52,6 @@ function ProductsRegistrationScreen() {
   const [imageUri, setImageUri] = useState(null);
   const [isScannerActive, setIsScannerActive] = useState(false);
   const { hasPermission, requestPermission, isLoading } = useCameraPermission();
-
   const [scannedCode, setScannedCode] = useState();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   // Função para buscar categorias
@@ -281,6 +280,8 @@ function ProductsRegistrationScreen() {
         company_id: companyId,
       };
 
+      console.log("Payload antes de enviar para a API:", payload);
+
       if (imageUri) {
         const uriParts = imageUri.split(".");
         const fileType = uriParts[uriParts.length - 1];
@@ -314,6 +315,7 @@ function ProductsRegistrationScreen() {
       setName("");
       setPrice("");
       setBarcode("");
+      setScannedCode("");
       setNcm("");
       setAliquota("");
       setCfop("");
@@ -522,6 +524,7 @@ function ProductsRegistrationScreen() {
                 onBarcodeScanned={({ data }) => {
                   console.log(data);
                   setScannedCode(data);
+                  setBarcode(data);
                   setIsScannerActive(false);
                   setIsCameraOpen(false);
                 }}
@@ -561,9 +564,9 @@ function ProductsRegistrationScreen() {
                 placeholder="Código de Barras"
                 placeholderTextColor="#888"
                 style={styles.input}
-                value={scannedCode} // Exibe o código escaneado
-                onChangeText={setScannedCode} // Sincroniza o estado com o TextBox
-                editable={false} // Campo somente leitura após escanear
+                value={barcode}
+                onChangeText={(text) => setBarcode(text)} // Sincroniza o estado com o TextBox
+                //editable={false} // Campo somente leitura após escanear
               />
             </View>
           )}
@@ -688,6 +691,10 @@ function ProductsRegistrationScreen() {
                     setSelectedProductId(item.id);
                     setName(item.name);
                     setPrice(item.price);
+                    setBarcode(item.barcode);
+                    setAliquota(item.aliquota);
+                    setNcm(item.ncm);
+                    setCfop(item.cfop);
                     setQuantity(item.quantity?.toString() || "0");
                     setSelectedCategory(item.category_id ?? null);
                   }}

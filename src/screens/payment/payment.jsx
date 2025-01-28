@@ -24,6 +24,9 @@ const Payment = () => {
   const { employeeId } = useAuth();
   const { clearCart } = useCart(); // Acesse a função clearCart do contexto
 
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState("");
+
   // Pega os parâmetros da navegação
   const route = useRoute();
   const { customer, cartItems } = route.params || {}; // Recebe os itens do carrinho
@@ -48,35 +51,75 @@ const Payment = () => {
   const handleFinalizeSale = async () => {
     console.log("Finalizar Venda clicado");
 
+    // Verificar se o ID da empresa está presente
     if (!companyId) {
       Alert.alert("Erro", "O ID da empresa não foi fornecido.");
       return;
     }
 
+    // Verificar se o token de autenticação está presente
     if (!authToken) {
       Alert.alert("Erro", "Token de autenticação não encontrado.");
       return;
     }
 
-    // Permite a venda sem cliente, mas verifica se foi inserido
-    const customerId = customer ? customer.id_client : null;
+    // Verificar se o cliente está definido e se o ID está correto
+    const customerId = customer?.id_client || null; // Encadeamento opcional para evitar erros
     if (customer && !customerId) {
       Alert.alert("Erro", "Os dados do cliente não estão disponíveis.");
       return;
     }
 
+    // Verificar se há itens no carrinho
     if (!cartItems || cartItems.length === 0) {
       Alert.alert("Erro", "Não há produtos no carrinho.");
       return;
     }
 
+    // Validar o ID do funcionário
     const validEmployeeId = parseInt(employeeId, 10);
     if (isNaN(validEmployeeId)) {
       Alert.alert("Erro", "ID do funcionário inválido.");
       return;
     }
 
+    // Confirmar se o usuário deseja gerar o QR Code Pix
+    Alert.alert(
+      "Gerar Código Pix",
+      "Deseja gerar um código Pix antes de finalizar a venda?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Gerar Pix",
+          onPress: async () => {
+            try {
+              await generatePixCode(); // Gerar e exibir QR Code
+            } catch (error) {
+              console.error("Erro ao gerar o código Pix:", error);
+              Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
+              return;
+            }
+            // Após gerar o Pix, continua a finalização da venda
+            await processSale(customerId, validEmployeeId);
+          },
+        },
+        {
+          text: "Finalizar sem Pix",
+          onPress: async () => {
+            // Continua com a finalização sem gerar Pix
+            await processSale(customerId, validEmployeeId);
+          },
+        },
+      ]
+    );
+  };
+
+  const processSale = async (customerId, validEmployeeId) => {
     try {
+      // Criar os dados da venda
       const saleData = cartItems.map((item) => {
         const productId = item.id;
         if (!productId) {
@@ -108,18 +151,18 @@ const Payment = () => {
 
       console.log("Dados da venda prontos para envio:", saleData);
 
+      // Enviar os dados para a API
       const response = await api.post(`/sales/${companyId}`, saleData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-      console.log("Resposta da API:", response);
       if (response.status === 201) {
         Alert.alert("Venda finalizada!", "A venda foi registrada com sucesso.");
 
         // Limpar o cliente e o carrinho após a venda ser finalizada
-        clearCart(); // Limpar o carrinho no contexto
+        clearCart();
 
-        // Limpar o cliente e o carrinho após a venda ser finalizada
+        // Resetar a navegação
         navigation.reset({
           index: 0,
           routes: [
@@ -152,6 +195,28 @@ const Payment = () => {
           error.message || "Algo deu errado. Tente novamente."
         );
       }
+    }
+  };
+
+  const generatePixCode = async () => {
+    try {
+      const pixPayload = `
+        000201
+        010211
+        26...
+        52040000
+        5303986
+        5802BR
+        5913NOME DO CLIENTE
+        6010CIDADE
+        6108${total}
+        62070503***`;
+
+      setQrCodeData(pixPayload.trim());
+      setShowQRCode(true); // Mostra o modal com o QR Code
+    } catch (error) {
+      console.error("Erro ao gerar o código Pix:", error);
+      Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
     }
   };
 
@@ -200,7 +265,11 @@ const Payment = () => {
             <View style={styles.itemRow}>
               <View style={styles.itemInfoContainer}>
                 <Text style={styles.itemName}>
-                  {item.quantity}x {item.name}
+                  {item.quantity}x R${" "}
+                  {parseFloat(
+                    item.price.replace("R$", "").replace(",", ".")
+                  ).toFixed(2)}{" "}
+                  - {item.name}
                 </Text>
               </View>
               <Text style={styles.itemPrice}>
