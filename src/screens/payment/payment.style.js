@@ -117,4 +117,37 @@ export const styles = StyleSheet.create({
     color: "#333", // Cor do texto
     fontWeight: "bold", // Peso do texto
   },
+  qrCodeContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    marginVertical: 20,
+  },
+  pixCode: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#333",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  copyButton: {
+    marginTop: 10,
+    backgroundColor: "#007bff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  copyButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
 });

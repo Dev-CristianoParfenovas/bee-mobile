@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   Alert,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./payment.style.js";
@@ -16,6 +17,7 @@ import { useRoute } from "@react-navigation/native";
 import api from "../../constants/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useCart } from "../../context/CartContext.jsx";
+import QRCode from "react-native-qrcode-svg";
 
 const Payment = () => {
   const navigation = useNavigation(); // Hook para acessar a navegação
@@ -47,7 +49,6 @@ const Payment = () => {
   const total = subtotal;
 
   // Função para enviar a venda para a API
-
   const handleFinalizeSale = async () => {
     console.log("Finalizar Venda clicado");
 
@@ -196,24 +197,71 @@ const Payment = () => {
         );
       }
     }
+    //};
+
+    const phoneNumber = customer.phone.replace(/\D/g, ""); // Remove caracteres não numéricos
+    const pixMessage = `Olá ${
+      customer.name
+    }, aqui está o código Pix para pagamento:\n\n${qrCodeData}\n\nTotal: R$ ${total.toFixed(
+      2
+    )}`;
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      pixMessage
+    )}`;
+
+    Linking.openURL(whatsappUrl)
+      .then(() => console.log("Abrindo WhatsApp..."))
+      .catch((err) => console.error("Erro ao abrir o WhatsApp:", err));
   };
 
-  const generatePixCode = async () => {
-    try {
-      const pixPayload = `
-        000201
-        010211
-        26...
-        52040000
-        5303986
-        5802BR
-        5913NOME DO CLIENTE
-        6010CIDADE
-        6108${total}
-        62070503***`;
+  const copyToClipboard = () => {
+    Clipboard.setString(qrCodeData);
+    Alert.alert(
+      "Código Copiado",
+      "O código Pix foi copiado para a área de transferência."
+    );
+  };
 
-      setQrCodeData(pixPayload.trim());
-      setShowQRCode(true); // Mostra o modal com o QR Code
+  // Função para enviar o código Pix pelo WhatsApp
+  const sendPixToWhatsApp = () => {
+    if (!customer || !customer.phone) {
+      Alert.alert("Erro", "Número de telefone do cliente não disponível.");
+      return;
+    }
+
+    if (!qrCodeData) {
+      Alert.alert("Erro", "O código Pix ainda não foi gerado.");
+      return;
+    }
+
+    const phoneNumber = customer.phone.replace(/\D/g, ""); // Remove caracteres não numéricos
+    const pixMessage = `Olá ${
+      customer.name
+    }, aqui está o código Pix para pagamento:\n\n${qrCodeData}\n\nTotal: R$ ${total.toFixed(
+      2
+    )}`;
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      pixMessage
+    )}`;
+
+    Linking.openURL(whatsappUrl)
+      .then(() => console.log("Abrindo WhatsApp..."))
+      .catch((err) => console.error("Erro ao abrir o WhatsApp:", err));
+  };
+
+  const generatePixCode = () => {
+    try {
+      const pixPayload = `00020101021126...5204000053039865802BR5913${
+        customer.name
+      }6010CIDADE6108${total.toFixed(2)}62070503***`;
+
+      setQrCodeData(pixPayload.trim()); // Atualiza o estado do QR Code
+      setShowQRCode(true); // Mostra o QR Code na tela
+      sendPixToWhatsApp();
+
+      Alert.alert("Código Pix Gerado", "Agora você pode enviar pelo WhatsApp.");
     } catch (error) {
       console.error("Erro ao gerar o código Pix:", error);
       Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
