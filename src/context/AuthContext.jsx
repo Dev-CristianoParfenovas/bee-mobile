@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const loadUserName = async () => {
-      //await AsyncStorage.clear();
+      // await AsyncStorage.clear();
       try {
         const storedName = await AsyncStorage.getItem("userName");
         if (storedName) {

@@ -17,7 +17,8 @@ import { useRoute } from "@react-navigation/native";
 import api from "../../constants/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useCart } from "../../context/CartContext.jsx";
-import QRCode from "react-native-qrcode-svg";
+import QRCode from "qrcode";
+import { crc16ccitt } from "crc";
 
 const Payment = () => {
   const navigation = useNavigation(); // Hook para acessar a navegação
@@ -52,118 +53,102 @@ const Payment = () => {
   const handleFinalizeSale = async () => {
     console.log("Finalizar Venda clicado");
 
-    // Verificar se o ID da empresa está presente
     if (!companyId) {
       Alert.alert("Erro", "O ID da empresa não foi fornecido.");
       return;
     }
 
-    // Verificar se o token de autenticação está presente
     if (!authToken) {
       Alert.alert("Erro", "Token de autenticação não encontrado.");
       return;
     }
 
-    // Verificar se o cliente está definido e se o ID está correto
-    const customerId = customer?.id_client || null; // Encadeamento opcional para evitar erros
+    const customerId = customer?.id_client || null;
     if (customer && !customerId) {
       Alert.alert("Erro", "Os dados do cliente não estão disponíveis.");
       return;
     }
 
-    // Verificar se há itens no carrinho
     if (!cartItems || cartItems.length === 0) {
       Alert.alert("Erro", "Não há produtos no carrinho.");
       return;
     }
 
-    // Validar o ID do funcionário
     const validEmployeeId = parseInt(employeeId, 10);
     if (isNaN(validEmployeeId)) {
       Alert.alert("Erro", "ID do funcionário inválido.");
       return;
     }
 
-    // Confirmar se o usuário deseja gerar o QR Code Pix
     Alert.alert(
-      "Gerar Código Pix",
-      "Deseja gerar um código Pix antes de finalizar a venda?",
+      "Finalizar Venda",
+      "Escolha uma opção para finalizar a venda:",
       [
         {
           text: "Cancelar",
           style: "cancel",
         },
         {
-          text: "Gerar Pix",
+          text: "Finalizar com Pix",
           onPress: async () => {
             try {
-              await generatePixCode(); // Gerar e exibir QR Code
+              console.log("Gerando código Pix...");
+              const pixCode = await generatePixCode(); // Gera o código Pix
+
+              if (!pixCode) {
+                throw new Error("Código Pix não gerado.");
+              }
+
+              console.log("Código Pix gerado:", pixCode);
+
+              // Finaliza a venda COM Pix
+              await processSale(customerId, validEmployeeId, pixCode);
+
+              // Enviar código Pix via WhatsApp
+              sendPixToWhatsApp(customer, pixCode, total);
             } catch (error) {
               console.error("Erro ao gerar o código Pix:", error);
               Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
-              return;
             }
-            // Após gerar o Pix, continua a finalização da venda
-            await processSale(customerId, validEmployeeId);
           },
         },
         {
           text: "Finalizar sem Pix",
           onPress: async () => {
-            // Continua com a finalização sem gerar Pix
-            await processSale(customerId, validEmployeeId);
+            try {
+              console.log("Finalizando venda sem Pix...");
+              await processSale(customerId, validEmployeeId, null);
+            } catch (error) {
+              console.error("Erro ao finalizar a venda sem Pix:", error);
+            }
           },
         },
       ]
     );
   };
 
-  const processSale = async (customerId, validEmployeeId) => {
+  const processSale = async (customerId, validEmployeeId, pixCode = null) => {
     try {
-      // Criar os dados da venda
-      const saleData = cartItems.map((item) => {
-        const productId = item.id;
-        if (!productId) {
-          throw new Error(`ID do produto inválido: ${JSON.stringify(item)}`);
-        }
+      const saleData = cartItems.map((item) => ({
+        company_id: companyId,
+        product_id: item.id,
+        id_client: customerId,
+        employee_id: validEmployeeId,
+        quantity: parseFloat(item.quantity) || 1,
+        total_price: parseFloat(item.price) || 0,
+        sale_date: new Date().toISOString(),
+        tipovenda: pixCode ? 2 : 1, // Define o tipo de venda (1=Normal, 2=Pix)
+      }));
 
-        let quantity = parseFloat(item.quantity);
-        if (isNaN(quantity) || quantity <= 0) {
-          throw new Error(`Quantidade inválida: ${item.quantity}`);
-        }
-        quantity = Math.round(quantity * 100) / 100; // Arredondar para 2 casas decimais
+      console.log("Enviando dados da venda:", saleData);
 
-        const totalPrice = parseFloat(item.price);
-        if (isNaN(totalPrice) || totalPrice <= 0) {
-          throw new Error(`Preço total inválido: ${item.price}`);
-        }
-
-        return {
-          company_id: companyId,
-          product_id: productId,
-          id_client: customerId, // Pode ser null caso o cliente não tenha sido inserido
-          employee_id: validEmployeeId,
-          quantity,
-          total_price: totalPrice,
-          sale_date: new Date().toISOString(),
-          tipovenda: 1,
-        };
-      });
-
-      console.log("Dados da venda prontos para envio:", saleData);
-
-      // Enviar os dados para a API
       const response = await api.post(`/sales/${companyId}`, saleData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
       if (response.status === 201) {
         Alert.alert("Venda finalizada!", "A venda foi registrada com sucesso.");
-
-        // Limpar o cliente e o carrinho após a venda ser finalizada
         clearCart();
-
-        // Resetar a navegação
         navigation.reset({
           index: 0,
           routes: [
@@ -183,36 +168,9 @@ const Payment = () => {
         Alert.alert("Erro", "Houve um problema ao registrar a venda.");
       }
     } catch (error) {
-      if (error.response) {
-        console.error("Erro na resposta da API:", error.response.data);
-        Alert.alert(
-          "Erro",
-          error.response.data.message || "Erro ao processar a venda."
-        );
-      } else {
-        console.error("Erro desconhecido:", error.message);
-        Alert.alert(
-          "Erro",
-          error.message || "Algo deu errado. Tente novamente."
-        );
-      }
+      console.error("Erro ao processar a venda:", error);
+      Alert.alert("Erro", "Não foi possível concluir a venda.");
     }
-    //};
-
-    const phoneNumber = customer.phone.replace(/\D/g, ""); // Remove caracteres não numéricos
-    const pixMessage = `Olá ${
-      customer.name
-    }, aqui está o código Pix para pagamento:\n\n${qrCodeData}\n\nTotal: R$ ${total.toFixed(
-      2
-    )}`;
-
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      pixMessage
-    )}`;
-
-    Linking.openURL(whatsappUrl)
-      .then(() => console.log("Abrindo WhatsApp..."))
-      .catch((err) => console.error("Erro ao abrir o WhatsApp:", err));
   };
 
   const copyToClipboard = () => {
@@ -223,50 +181,195 @@ const Payment = () => {
     );
   };
 
-  // Função para enviar o código Pix pelo WhatsApp
-  const sendPixToWhatsApp = () => {
-    if (!customer || !customer.phone) {
-      Alert.alert("Erro", "Número de telefone do cliente não disponível.");
-      return;
-    }
+  const sendPixToWhatsApp = async (customer, qrCodeData, total) => {
+    const phoneNumber = customer.phone.replace(/\D/g, "");
 
-    if (!qrCodeData) {
-      Alert.alert("Erro", "O código Pix ainda não foi gerado.");
-      return;
-    }
-
-    const phoneNumber = customer.phone.replace(/\D/g, ""); // Remove caracteres não numéricos
-    const pixMessage = `Olá ${
+    // Primeira mensagem com explicação
+    const message1 = `Olá ${
       customer.name
-    }, aqui está o código Pix para pagamento:\n\n${qrCodeData}\n\nTotal: R$ ${total.toFixed(
+    }, segue o código Pix para pagamento.\n\nTotal: R$ ${total.toFixed(
       2
+    )}\n\nCopie o código Pix na próxima mensagem.`;
+    const whatsappUrl1 = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message1
     )}`;
 
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      pixMessage
+    // Segunda mensagem com o código Pix
+    const message2 = qrCodeData;
+    const whatsappUrl2 = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message2
     )}`;
 
-    Linking.openURL(whatsappUrl)
-      .then(() => console.log("Abrindo WhatsApp..."))
-      .catch((err) => console.error("Erro ao abrir o WhatsApp:", err));
+    try {
+      // Envia a primeira mensagem
+      await Linking.openURL(whatsappUrl1);
+      setTimeout(async () => {
+        // Aguarda um pequeno tempo e envia a segunda mensagem com o código Pix
+        await Linking.openURL(whatsappUrl2);
+      }, 3000); // Espera 3 segundos antes de enviar a segunda mensagem
+    } catch (err) {
+      console.error("Erro ao abrir o WhatsApp:", err);
+    }
   };
 
-  const generatePixCode = () => {
+  const generatePixCode = async () => {
     try {
-      const pixPayload = `00020101021126...5204000053039865802BR5913${
-        customer.name
-      }6010CIDADE6108${total.toFixed(2)}62070503***`;
+      // 🔹 Dados do Pix
+      const receiverName = customer.name.toUpperCase().substring(0, 25); // Nome do recebedor (máx. 25 caracteres)
+      const value = total.toFixed(2).replace(".", ""); // Valor do pagamento (sem ponto)
+      const city = "CIDADE".toUpperCase().substring(0, 15); // Cidade do recebedor (máx. 15 caracteres)
+      const key = "chave_pix_recebedor"; // Chave Pix do recebedor
+      const txid = "123456789"; // ID da transação (pode ser ***)
 
-      setQrCodeData(pixPayload.trim()); // Atualiza o estado do QR Code
-      setShowQRCode(true); // Mostra o QR Code na tela
-      sendPixToWhatsApp();
+      // 🔹 Construção do Payload Pix (Padrão EMV)
+      let pixPayload =
+        "000201" + // Payload format indicator
+        "010211" + // Merchant account information
+        "26" +
+        (
+          "0014BR.GOV.BCB.PIX" +
+          "01" +
+          key.length.toString().padStart(2, "0") +
+          key
+        ).length
+          .toString()
+          .padStart(2, "0") +
+        "0014BR.GOV.BCB.PIX" +
+        "01" +
+        key.length.toString().padStart(2, "0") +
+        key +
+        "52040000" + // MCC fixo
+        "5303986" + // Moeda (986 = BRL)
+        "54" +
+        value.length.toString().padStart(2, "0") +
+        value + // Valor do pagamento
+        "5802BR" + // País (BR)
+        "59" +
+        receiverName.length.toString().padStart(2, "0") +
+        receiverName + // Nome do recebedor
+        "60" +
+        city.length.toString().padStart(2, "0") +
+        city + // Cidade do recebedor
+        "62" +
+        (txid.length + 4).toString().padStart(2, "0") +
+        "05" +
+        txid.length.toString().padStart(2, "0") +
+        txid + // ID transação
+        "6304"; // Checksum CRC16
 
-      Alert.alert("Código Pix Gerado", "Agora você pode enviar pelo WhatsApp.");
+      // 🔹 Cálculo correto do CRC16-CCITT
+      const crc = calculateCRC16(pixPayload);
+      pixPayload += crc; // Adiciona o CRC16 ao final
+
+      // 🔹 Atualiza o estado com o QR Code gerado
+      setQrCodeData(pixPayload);
+      setShowQRCode(true);
+
+      return pixPayload;
     } catch (error) {
       console.error("Erro ao gerar o código Pix:", error);
       Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
+      return null;
     }
   };
+
+  // 🔹 Função corrigida para calcular o CRC16-CCITT corretamente
+  const calculateCRC16 = (payload) => {
+    let crc = 0xffff;
+    for (let i = 0; i < payload.length; i++) {
+      crc ^= payload.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        if (crc & 0x8000) {
+          crc = (crc << 1) ^ 0x1021;
+        } else {
+          crc <<= 1;
+        }
+      }
+    }
+    return (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
+  };
+
+  // Função separada para envio do Pix pelo WhatsApp
+  /*const sendPixToWhatsApp = async (customer, qrCodeData, total) => {
+    const phoneNumber = customer.phone.replace(/\D/g, "");
+
+    // Primeira mensagem com explicação
+    const message1 = `Olá ${
+      customer.name
+    }, segue o código Pix para pagamento.\n\nTotal: R$ ${total.toFixed(
+      2
+    )}\n\nCopie o código Pix na próxima mensagem.`;
+    const whatsappUrl1 = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message1
+    )}`;
+
+    // Segunda mensagem apenas com o código Pix
+    //const message2 = `Código Pix:\n${qrCodeData}`;
+    const message2 = qrCodeData;
+    const whatsappUrl2 = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message2
+    )}`;
+
+    try {
+      // Envia a primeira mensagem
+      await Linking.openURL(whatsappUrl1);
+      setTimeout(async () => {
+        // Aguarda um pequeno tempo e envia a segunda mensagem com o código Pix
+        await Linking.openURL(whatsappUrl2);
+      }, 3000); // Espera 3 segundos antes de enviar a segunda mensagem
+    } catch (err) {
+      console.error("Erro ao abrir o WhatsApp:", err);
+    }
+  };*/
+  /* const generatePixCode = async () => {
+    try {
+      // Dados do pagamento Pix
+      const receiverName = customer.name; // Nome do recebedor
+      const value = total.toFixed(2); // Valor do pagamento
+      const city = "CIDADE"; // Cidade do recebedor
+      const key = "chave_pix_recebedor"; // Chave Pix do recebedor (pode ser CPF, CNPJ, e-mail, ou telefone)
+
+      // Formatação do Payload Pix
+
+      const pixPayload = `00020101021126140014BR.GOV.BCB.PIX0114${key}5204000053039865802BR5913${receiverName}6010${city}6108${value}62070503${key}6304`;
+      // Exemplo de payload
+      const payload = `00020101021126...5204000053039865802BR5913${receiverName}6010${city}6108${value}62070503`;
+
+      // Para fins de exemplo, o código é uma string concatenada
+      setQrCodeData(pixPayload.trim()); // Atualiza o estado com o QR Code gerado
+      setShowQRCode(true); // Mostra o QR Code na tela
+
+      return pixPayload; // Retorna o código Pix gerado
+    } catch (error) {
+      console.error("Erro ao gerar o código Pix:", error);
+      Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
+      return null;
+    }
+  };*/
+
+  /*const generatePixCode = async () => {
+    try {
+      // Dados do pagamento Pix
+      const receiverName = customer.name; // Nome do recebedor
+      const value = total.toFixed(2); // Valor do pagamento
+      const city = "CIDADE"; // Cidade do recebedor
+
+      // Dados obrigatórios para o código Pix
+      const pixPayload = `00020101021126...5204000053039865802BR5913${receiverName}6010${city}6108${value}62070503`;
+
+      // Para fins de exemplo, o código é uma string concatenada
+      // Você pode adicionar as informações conforme a necessidade, como CPF/CNPJ, nome da empresa, etc.
+
+      setQrCodeData(pixPayload.trim()); // Atualiza o estado com o QR Code gerado
+      setShowQRCode(true); // Mostra o QR Code na tela
+
+      return pixPayload; // Retorna o código Pix gerado
+    } catch (error) {
+      console.error("Erro ao gerar o código Pix:", error);
+      Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
+      return null;
+    }
+  };*/
 
   return (
     <View style={styles.container}>
