@@ -14,7 +14,7 @@ import {
   StatusBar,
 } from "react-native";
 import { debounce } from "lodash"; // Para debounce, instale lodash (npm install lodash)
-import { MaterialIcons, FontAwesome, Ionicons } from "@expo/vector-icons"; // Biblioteca de ícones
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
 import { styles } from "./products_registration_screen.js";
 import Button from "../../components/button/button.jsx";
 import ButtonSearch from "../../components/button_search/button_search.jsx";
@@ -671,59 +671,66 @@ function ProductsRegistrationScreen() {
       </View>
 
       {/* FlatList de Produtos */}
-      <FlatList
-        data={products}
-        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => {
-          if (!item || !item.id) return null;
 
-          return (
-            <View style={styles.productCard}>
-              <Text style={styles.productName}>{item.name}</Text>
-              <Text style={styles.productDetails}>
-                Preço: R$ {item.price} | Estoque:{" "}
-                {item.quantity > 0 ? item.quantity : "Sem estoque"}
-              </Text>
-              <View style={styles.buttonsContainer}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setSelectedProductId(item.id);
-                    setName(item.name);
-                    setPrice(item.price);
-                    setBarcode(item.barcode);
-                    setAliquota(item.aliquota);
-                    setNcm(item.ncm);
-                    setCfop(item.cfop);
-                    setQuantity(item.quantity?.toString() || "0");
-                    setSelectedCategory(item.category_id ?? null);
-                  }}
-                  style={styles.selecionarButton}
-                  accessibilityLabel={`Selecionar produto ${item.name}`}
-                >
-                  <MaterialIcons
-                    name="check-circle"
-                    size={24}
-                    color={COLORS.gray3}
-                  />
-                  <Text style={styles.selecionarButtonText}>Selecionar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.removeButtonContainer}
-                  onPress={() => confirmRemove(item.id)}
-                  accessibilityLabel={`Remover produto ${item.name}`}
-                >
-                  <MaterialIcons name="delete" size={24} color={COLORS.red} />
-                  <Text style={styles.removeButtonText}>Remover</Text>
-                </TouchableOpacity>
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(item, index) =>
+            item.id?.toString() || index.toString()
+          }
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            if (!item || !item.id) return null;
+
+            return (
+              <View style={styles.productCard}>
+                <Text style={styles.productName}>{item.name}</Text>
+                <Text style={styles.productDetails}>
+                  Preço: R$ {item.price} | Estoque:{" "}
+                  {item.quantity > 0 ? item.quantity : "Sem estoque"}
+                </Text>
+                <View style={styles.buttonsContainer}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedProductId(item.id);
+                      setName(item.name);
+                      setPrice(item.price);
+                      setBarcode(item.barcode);
+                      setAliquota(item.aliquota);
+                      setNcm(item.ncm);
+                      setCfop(item.cfop);
+                      setQuantity(item.quantity?.toString() || "0");
+                      setSelectedCategory(item.category_id ?? null);
+                    }}
+                    style={styles.selecionarButton}
+                    accessibilityLabel={`Selecionar produto ${item.name}`}
+                  >
+                    <MaterialIcons
+                      name="check-circle"
+                      size={24}
+                      color={COLORS.gray3}
+                    />
+                    <Text style={styles.selecionarButtonText}>Selecionar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.removeButtonContainer}
+                    onPress={() => confirmRemove(item.id)}
+                    accessibilityLabel={`Remover produto ${item.name}`}
+                  >
+                    <MaterialIcons name="delete" size={24} color={COLORS.red} />
+                    <Text style={styles.removeButtonText}>Remover</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        style={{ marginTop: 20 }}
-      />
+            );
+          }}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          style={{ marginTop: 20 }}
+        />
+      )}
     </View>
   );
 }

@@ -1,4 +1,3 @@
-// App.js
 import { useEffect } from "react";
 import Routes from "./src/routes";
 import RoutesAuth from "./src/routesAuth";
@@ -6,6 +5,8 @@ import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import { UserProvider } from "./src/context/UserContext"; // Importe o UserProvider
 import { CartProvider } from "./src/context/CartContext";
 import { CameraPermissionProvider } from "./src/context/CameraPermissionContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NavigationContainer } from "@react-navigation/native";
 
 function AppContent() {
   const { isAuthenticated, setIsAuthenticated } = useAuth();
@@ -19,7 +20,11 @@ function AppContent() {
     checkAuthStatus();
   }, [setIsAuthenticated]);
 
-  return isAuthenticated ? <RoutesAuth /> : <Routes />;
+  return (
+    <NavigationContainer>
+      {isAuthenticated ? <RoutesAuth /> : <Routes />}
+    </NavigationContainer>
+  );
 }
 
 export default function App() {

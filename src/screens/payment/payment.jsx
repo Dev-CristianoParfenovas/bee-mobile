@@ -214,54 +214,49 @@ const Payment = () => {
 
   const generatePixCode = async () => {
     try {
-      // 🔹 Dados do Pix
-      const receiverName = customer.name.toUpperCase().substring(0, 25); // Nome do recebedor (máx. 25 caracteres)
-      const value = total.toFixed(2).replace(".", ""); // Valor do pagamento (sem ponto)
-      const city = "CIDADE".toUpperCase().substring(0, 15); // Cidade do recebedor (máx. 15 caracteres)
-      const key = "chave_pix_recebedor"; // Chave Pix do recebedor
-      const txid = "123456789"; // ID da transação (pode ser ***)
+      const receiverName = customer.name.toUpperCase().substring(0, 25);
+      const value = total.toFixed(2); // Mantendo o ponto decimal
+      const city = "CIDADE".toUpperCase().substring(0, 15);
+      const key = "chave_pix_recebedor";
+      const txid = "123456789".padEnd(25, "0");
 
-      // 🔹 Construção do Payload Pix (Padrão EMV)
-      let pixPayload =
-        "000201" + // Payload format indicator
-        "010211" + // Merchant account information
-        "26" +
-        (
-          "0014BR.GOV.BCB.PIX" +
-          "01" +
-          key.length.toString().padStart(2, "0") +
-          key
-        ).length
-          .toString()
-          .padStart(2, "0") +
+      const merchantAccountInfo =
         "0014BR.GOV.BCB.PIX" +
         "01" +
         key.length.toString().padStart(2, "0") +
-        key +
-        "52040000" + // MCC fixo
-        "5303986" + // Moeda (986 = BRL)
+        key;
+      const merchantAccountInfoLength = merchantAccountInfo.length
+        .toString()
+        .padStart(2, "0");
+
+      let pixPayload =
+        "000201" +
+        "010211" +
+        "26" +
+        merchantAccountInfoLength +
+        merchantAccountInfo +
+        "52040000" +
+        "5303986" +
         "54" +
         value.length.toString().padStart(2, "0") +
-        value + // Valor do pagamento
-        "5802BR" + // País (BR)
+        value +
+        "5802BR" +
         "59" +
         receiverName.length.toString().padStart(2, "0") +
-        receiverName + // Nome do recebedor
+        receiverName +
         "60" +
         city.length.toString().padStart(2, "0") +
-        city + // Cidade do recebedor
+        city +
         "62" +
         (txid.length + 4).toString().padStart(2, "0") +
         "05" +
         txid.length.toString().padStart(2, "0") +
-        txid + // ID transação
-        "6304"; // Checksum CRC16
+        txid +
+        "6304";
 
-      // 🔹 Cálculo correto do CRC16-CCITT
       const crc = calculateCRC16(pixPayload);
-      pixPayload += crc; // Adiciona o CRC16 ao final
+      pixPayload += crc;
 
-      // 🔹 Atualiza o estado com o QR Code gerado
       setQrCodeData(pixPayload);
       setShowQRCode(true);
 
@@ -288,88 +283,6 @@ const Payment = () => {
     }
     return (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
   };
-
-  // Função separada para envio do Pix pelo WhatsApp
-  /*const sendPixToWhatsApp = async (customer, qrCodeData, total) => {
-    const phoneNumber = customer.phone.replace(/\D/g, "");
-
-    // Primeira mensagem com explicação
-    const message1 = `Olá ${
-      customer.name
-    }, segue o código Pix para pagamento.\n\nTotal: R$ ${total.toFixed(
-      2
-    )}\n\nCopie o código Pix na próxima mensagem.`;
-    const whatsappUrl1 = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      message1
-    )}`;
-
-    // Segunda mensagem apenas com o código Pix
-    //const message2 = `Código Pix:\n${qrCodeData}`;
-    const message2 = qrCodeData;
-    const whatsappUrl2 = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      message2
-    )}`;
-
-    try {
-      // Envia a primeira mensagem
-      await Linking.openURL(whatsappUrl1);
-      setTimeout(async () => {
-        // Aguarda um pequeno tempo e envia a segunda mensagem com o código Pix
-        await Linking.openURL(whatsappUrl2);
-      }, 3000); // Espera 3 segundos antes de enviar a segunda mensagem
-    } catch (err) {
-      console.error("Erro ao abrir o WhatsApp:", err);
-    }
-  };*/
-  /* const generatePixCode = async () => {
-    try {
-      // Dados do pagamento Pix
-      const receiverName = customer.name; // Nome do recebedor
-      const value = total.toFixed(2); // Valor do pagamento
-      const city = "CIDADE"; // Cidade do recebedor
-      const key = "chave_pix_recebedor"; // Chave Pix do recebedor (pode ser CPF, CNPJ, e-mail, ou telefone)
-
-      // Formatação do Payload Pix
-
-      const pixPayload = `00020101021126140014BR.GOV.BCB.PIX0114${key}5204000053039865802BR5913${receiverName}6010${city}6108${value}62070503${key}6304`;
-      // Exemplo de payload
-      const payload = `00020101021126...5204000053039865802BR5913${receiverName}6010${city}6108${value}62070503`;
-
-      // Para fins de exemplo, o código é uma string concatenada
-      setQrCodeData(pixPayload.trim()); // Atualiza o estado com o QR Code gerado
-      setShowQRCode(true); // Mostra o QR Code na tela
-
-      return pixPayload; // Retorna o código Pix gerado
-    } catch (error) {
-      console.error("Erro ao gerar o código Pix:", error);
-      Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
-      return null;
-    }
-  };*/
-
-  /*const generatePixCode = async () => {
-    try {
-      // Dados do pagamento Pix
-      const receiverName = customer.name; // Nome do recebedor
-      const value = total.toFixed(2); // Valor do pagamento
-      const city = "CIDADE"; // Cidade do recebedor
-
-      // Dados obrigatórios para o código Pix
-      const pixPayload = `00020101021126...5204000053039865802BR5913${receiverName}6010${city}6108${value}62070503`;
-
-      // Para fins de exemplo, o código é uma string concatenada
-      // Você pode adicionar as informações conforme a necessidade, como CPF/CNPJ, nome da empresa, etc.
-
-      setQrCodeData(pixPayload.trim()); // Atualiza o estado com o QR Code gerado
-      setShowQRCode(true); // Mostra o QR Code na tela
-
-      return pixPayload; // Retorna o código Pix gerado
-    } catch (error) {
-      console.error("Erro ao gerar o código Pix:", error);
-      Alert.alert("Erro", "Falha ao gerar o QR Code Pix.");
-      return null;
-    }
-  };*/
 
   return (
     <View style={styles.container}>

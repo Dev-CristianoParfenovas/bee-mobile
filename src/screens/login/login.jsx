@@ -13,7 +13,6 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function Login(props) {
-  // const { setIsAuthenticated } = useAuth(); // Atualiza o estado de autenticação
   const { login } = useAuth(); // Contexto do usuário
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, View, ScrollView } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import {
   createDrawerNavigator,
@@ -20,6 +20,7 @@ import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de instalar o react-native-vector-icons
 import { useAuth } from "./context/AuthContext.jsx"; // Caminho correto
 import SalesDashboard from "./screens/sales_dashboard/sales_dashboard.jsx";
+import LogoutScreen from "./components/logout_screen/logoutscreen.jsx";
 
 const Drawer = createDrawerNavigator();
 
@@ -28,30 +29,33 @@ function CustomDrawerContent(props) {
   const { userName } = props;
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
-      {/* Cabeçalho personalizado */}
-      <View style={{ padding: 20, backgroundColor: "#f4f4f4" }}>
-        <Text style={{ fontSize: 16 }}>Olá</Text>
-        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 20 }}>
-          {userName}
-        </Text>
-      </View>
-      {/* Renderiza os itens padrão do menu Drawer */}
-      <DrawerItemList {...props} />
-    </DrawerContentScrollView>
+    <View style={{ flex: 1 }}>
+      <DrawerContentScrollView
+        {...props}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Cabeçalho personalizado */}
+        <View style={{ padding: 20, backgroundColor: "#f4f4f4" }}>
+          <Text style={{ fontSize: 16 }}>Olá</Text>
+          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 20 }}>
+            {userName}
+          </Text>
+        </View>
+        {/* Renderiza os itens padrão do menu Drawer */}
+        <DrawerItemList {...props} />
+      </DrawerContentScrollView>
+    </View>
   );
 }
 
 function RoutesAuth() {
-  const { isAdmin, isAuthenticated, userName, idEmployee, logout } = useAuth();
+  const { isAdmin, isAuthenticated, userName, idEmployee } = useAuth();
   console.log("Adm: ", isAdmin);
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
   return (
-    <NavigationContainer>
+    <View style={{ flex: 1 }}>
       <Drawer.Navigator
         initialRouteName="DrawerScreen"
         drawerContent={(props) => (
@@ -224,13 +228,13 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
-              name="Pagamento"
-              component={Payment}
+              name="Sair"
+              component={LogoutScreen}
               options={{
                 headerShown: false,
                 drawerIcon: ({ color, size }) => (
                   <Icon
-                    name="payment"
+                    name="logout"
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}
@@ -240,6 +244,7 @@ function RoutesAuth() {
             />
           </>
         )}
+
         {/*Rota para funcionários*/}
         {isAuthenticated && !isAdmin && (
           <>
@@ -289,13 +294,13 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
-              name="Pagamento"
-              component={Payment}
+              name="Sair"
+              component={LogoutScreen}
               options={{
                 headerShown: false,
                 drawerIcon: ({ color, size }) => (
                   <Icon
-                    name="payment"
+                    name="logout"
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}
@@ -306,7 +311,7 @@ function RoutesAuth() {
           </>
         )}
       </Drawer.Navigator>
-    </NavigationContainer>
+    </View>
   );
 }
 
