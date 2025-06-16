@@ -39,7 +39,7 @@ function Products(props) {
 
   // Pega o customer e employee da navegação
   const route = useRoute();
-  const { customer } = route.params || {};
+  const { customer, vehicle } = route.params || {};
 
   const navigation = useNavigation(); // Hook para acessar a navegação
 
@@ -98,7 +98,7 @@ function Products(props) {
     Alert.alert("Carrinho", `${item.name} foi adicionado ao carrinho!`, [
       {
         text: "Ir para o carrinho",
-        onPress: () => navigation.navigate("Carrinho", { customer }),
+        onPress: () => navigation.navigate("Carrinho", { customer, vehicle }),
       },
       { text: "Continuar comprando", style: "cancel" },
     ]);
@@ -162,7 +162,9 @@ function Products(props) {
           <View style={styles.cartContainer}>
             <TouchableOpacity
               style={styles.cartButton}
-              onPress={() => navigation.navigate("Carrinho", { customer })}
+              onPress={() =>
+                navigation.navigate("Carrinho", { customer, vehicle })
+              }
             >
               <Ionicons name="cart-outline" size={30} color="white" />
             </TouchableOpacity>
@@ -182,6 +184,11 @@ function Products(props) {
       {customer && (
         <View style={styles.customerBanner}>
           <Text style={styles.customerText}>Cliente: {customer.name}</Text>
+          {vehicle?.license_plate && vehicle?.model && (
+            <Text style={styles.customerText}>
+              Placa: {vehicle.license_plate} - Modelo: {vehicle.model}
+            </Text>
+          )}
         </View>
       )}
 
@@ -245,7 +252,7 @@ function Products(props) {
             </CameraView>
           </>
         ) : (
-          <>
+          <View>
             {/* Botão para abrir a câmera */}
             <TouchableOpacity onPress={() => setIsCameraOpen(true)}>
               <Text style={styles.cameraIcon}>📷</Text>
@@ -259,7 +266,7 @@ function Products(props) {
               onChangeText={(text) => setBarcode(text)} // Atualiza o estado com o valor digitado
               editable={!isScannerActive} // Campo somente leitura após o escaneamento
             />
-          </>
+          </View>
         )}
       </View>
 

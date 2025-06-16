@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Image,
   View,
@@ -20,7 +20,7 @@ import Button from "../../components/button/button.jsx";
 import ButtonSearch from "../../components/button_search/button_search.jsx";
 import { COLORS } from "../../constants/theme.js";
 import api from "../../constants/api.js";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useAuth, AuthProvider } from "../../context/AuthContext.jsx"; // Importa o AuthContext
 import { Picker } from "@react-native-picker/picker";
 import getStoredData from "../../utils/getStoredData"; // Importa o utilitário de AsyncStorage
@@ -54,6 +54,8 @@ function ProductsRegistrationScreen() {
   const { hasPermission, requestPermission, isLoading } = useCameraPermission();
   const [scannedCode, setScannedCode] = useState();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [refreshProducts, setRefreshProducts] = useState(false);
+
   // Função para buscar categorias
   const fetchCategories = async (token, companyId) => {
     try {
@@ -61,9 +63,17 @@ function ProductsRegistrationScreen() {
       const response = await api.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCategories(response.data.data);
+
+      // response.data.data deve ser um array ou undefined
+      const categorias = Array.isArray(response.data?.data)
+        ? response.data.data
+        : [];
+
+      setCategories(categorias);
     } catch (error) {
       Alert.alert("Erro", "Não foi possível carregar as categorias.");
+      console.error("Erro ao carregar categorias:", error);
+      setCategories([]); // Garante que a tela não quebre
     }
   };
 
@@ -77,7 +87,7 @@ function ProductsRegistrationScreen() {
   // Função para salvar dados no AsyncStorage
   const storeUserData = async (token, companyId) => {
     try {
-      await AsyncStorage.setItem("userToken", token);
+      await AsyncStorage.setItem("authToken", token);
       await AsyncStorage.setItem("companyId", companyId);
       console.log("Dados salvos com sucesso:", { token, companyId });
     } catch (error) {
@@ -88,7 +98,7 @@ function ProductsRegistrationScreen() {
   // Função para recuperar dados do AsyncStorage
   const initialize = async () => {
     try {
-      const token = await AsyncStorage.getItem("userToken");
+      const token = await AsyncStorage.getItem("authToken");
       const companyId = await AsyncStorage.getItem("companyId");
       console.log("Dados recuperados:", { token, companyId });
 
@@ -100,7 +110,6 @@ function ProductsRegistrationScreen() {
   };
 
   // Função para buscar produtos
-
   const fetchProducts = async (token, companyId) => {
     setLoading(true);
     try {
@@ -110,17 +119,14 @@ function ProductsRegistrationScreen() {
 
       console.log("Dados recebidos:", response.data);
 
-      // Verifica se a resposta é um array e coloca o primeiro item (produto mais recente) no topo
-      if (Array.isArray(response.data)) {
-        const updatedProducts = [response.data[0], ...response.data.slice(1)];
-        setProducts(updatedProducts); // Atualiza a lista de produtos
+      const products = Array.isArray(response.data)
+        ? response.data
+        : response.data.data; // ajuste conforme resposta da API
+
+      if (products && products.length > 0) {
+        setProducts(products);
       } else {
-        // Caso a resposta seja um objeto, verifique o campo de produtos (ajuste conforme necessário)
-        const updatedProducts = [
-          response.data.products[0],
-          ...response.data.products.slice(1),
-        ];
-        setProducts(updatedProducts);
+        setProducts([]);
       }
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
@@ -182,8 +188,13 @@ function ProductsRegistrationScreen() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        const token = await AsyncStorage.getItem("userToken");
+        const token = await AsyncStorage.getItem("authToken");
         const companyId = await AsyncStorage.getItem("companyId");
+
+        console.log("Valores recuperados do AsyncStorage:", {
+          token,
+          companyId,
+        });
 
         if (!token || !companyId) {
           Alert.alert("Erro", "Usuário ou empresa não autenticados.");
@@ -193,8 +204,9 @@ function ProductsRegistrationScreen() {
 
         setUserToken(token);
         setCompanyId(companyId);
-        fetchCategories(token, companyId);
-        fetchProducts(token, companyId);
+
+        await fetchCategories(token, companyId);
+        await fetchProducts(token, companyId);
       } catch (error) {
         console.error("Erro na inicialização:", error);
         Alert.alert("Erro", "Falha ao carregar dados iniciais.");
@@ -203,6 +215,12 @@ function ProductsRegistrationScreen() {
 
     initialize();
   }, []);
+
+  useEffect(() => {
+    if (userToken && companyId) {
+      fetchProducts(userToken, companyId);
+    }
+  }, [refreshProducts, userToken, companyId]);
 
   // Função para buscar produtos com debounce
   const handleSearchProduct = debounce(async () => {
@@ -258,7 +276,7 @@ function ProductsRegistrationScreen() {
     }
 
     try {
-      const token = await AsyncStorage.getItem("userToken");
+      const token = await AsyncStorage.getItem("authToken");
       if (!token) {
         Alert.alert("Erro", "Token não encontrado. Faça login novamente.");
         return;
@@ -321,6 +339,7 @@ function ProductsRegistrationScreen() {
       setCfop("");
       setQuantity("");
       setSelectedCategory("");
+      setRefreshProducts((prev) => !prev);
     } catch (error) {
       console.error("Erro na requisição:", error);
       const errorMessage =
@@ -350,7 +369,7 @@ function ProductsRegistrationScreen() {
   //FUNÇÃO REMOVER PRODUTO
   const handleRemoveProduct = async (productId) => {
     try {
-      const token = await AsyncStorage.getItem("userToken");
+      const token = await AsyncStorage.getItem("authToken");
       if (!token) {
         Alert.alert("Erro", "Token não encontrado. Faça login novamente.");
         return;
@@ -373,6 +392,7 @@ function ProductsRegistrationScreen() {
 
       if (response.status === 200) {
         Alert.alert("Sucesso", response.data.message);
+        setRefreshProducts((prev) => !prev);
         fetchProducts(token, companyId); // Forçar nova requisição para buscar todos os produtos
       } else {
         throw new Error("Erro ao excluir produto");
@@ -429,6 +449,18 @@ function ProductsRegistrationScreen() {
   useEffect(() => {
     console.log("hasPermission:", hasPermission); // Verifique se o estado está sendo atualizado corretamente
   }, [hasPermission]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!userToken || !companyId) {
+        console.warn("Token ou CompanyId indefinido no foco da tela");
+        return;
+      }
+
+      fetchProducts(userToken, companyId);
+      fetchCategories(userToken, companyId);
+    }, [userToken, companyId])
+  );
 
   return (
     <View style={styles.container}>

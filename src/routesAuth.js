@@ -15,12 +15,14 @@ import DrawerScreen from "./screens/drawer_screen/drawer_screen.jsx";
 import Products from "./screens/products/products.jsx";
 import Cart from "./screens/cart/cart.jsx";
 import Payment from "./screens/payment/payment.jsx";
+import QuickStockScreen from "./screens/quick_stock/quick_stock_screen.jsx";
 import { COLORS } from "./constants/theme.js";
 import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de instalar o react-native-vector-icons
 import { useAuth } from "./context/AuthContext.jsx"; // Caminho correto
 import SalesDashboard from "./screens/sales_dashboard/sales_dashboard.jsx";
 import LogoutScreen from "./components/logout_screen/logoutscreen.jsx";
+import AppStack from "../appstack.js";
 
 const Drawer = createDrawerNavigator();
 
@@ -137,21 +139,6 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
-              name="Cadastrar Produtos"
-              component={ProductsRegistrationScreen}
-              options={{
-                headerShown: false,
-                drawerIcon: ({ color, size }) => (
-                  <Icon
-                    name="inventory"
-                    color={color}
-                    size={size}
-                    style={{ marginLeft: -15 }}
-                  />
-                ),
-              }}
-            />
-            <Drawer.Screen
               name="Cadastrar Categorias"
               component={CategoryRegistrationScreen}
               options={{
@@ -166,6 +153,22 @@ function RoutesAuth() {
                 ),
               }}
             />
+            <Drawer.Screen
+              name="Cadastrar Produtos"
+              component={ProductsRegistrationScreen}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="inventory"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+
             <Drawer.Screen
               name="Acessar Clientes"
               component={EmployeeCustomer}
@@ -228,6 +231,21 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
+              name="Estoque Rápido"
+              component={QuickStockScreen}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="check-box"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Sair"
               component={LogoutScreen}
               options={{
@@ -240,6 +258,15 @@ function RoutesAuth() {
                     style={{ marginLeft: -15 }}
                   />
                 ),
+              }}
+            />
+            <Drawer.Screen
+              name="Pagto"
+              component={Payment}
+              options={{
+                headerShown: false,
+                drawerLabel: () => null, // Oculta o nome do item
+                drawerItemStyle: { height: 0 }, // Oculta o espaço do item
               }}
             />
           </>
