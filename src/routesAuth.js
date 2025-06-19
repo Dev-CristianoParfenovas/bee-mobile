@@ -22,6 +22,7 @@ import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de 
 import { useAuth } from "./context/AuthContext.jsx"; // Caminho correto
 import SalesDashboard from "./screens/sales_dashboard/sales_dashboard.jsx";
 import LogoutScreen from "./components/logout_screen/logoutscreen.jsx";
+import EmployeeList from "./screens/employee_list/employee_list.jsx";
 import AppStack from "../appstack.js";
 
 const Drawer = createDrawerNavigator();
@@ -200,6 +201,21 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
+              name="Acessar Funcionários"
+              component={EmployeeList}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="badge"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Carrinho"
               component={Cart}
               options={{
@@ -333,6 +349,15 @@ function RoutesAuth() {
                     style={{ marginLeft: -15 }}
                   />
                 ),
+              }}
+            />
+            <Drawer.Screen
+              name="Pagto"
+              component={Payment}
+              options={{
+                headerShown: false,
+                drawerLabel: () => null, // Oculta o nome do item
+                drawerItemStyle: { height: 0 }, // Oculta o espaço do item
               }}
             />
           </>
