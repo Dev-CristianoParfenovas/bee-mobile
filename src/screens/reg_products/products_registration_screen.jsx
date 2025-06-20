@@ -262,7 +262,7 @@ function ProductsRegistrationScreen() {
 
   // Função de cadastro de produto
   const handleCreateProduct = async () => {
-    if (!name || !price || !quantity || !selectedCategory) {
+    if (!name || !price) {
       Alert.alert("Erro", "Todos os campos devem ser preenchidos.");
       return;
     }
@@ -291,14 +291,14 @@ function ProductsRegistrationScreen() {
         id: selectedProductId || null, // Se não houver ID, será enviado `null`
         name,
         price: formattedPrice,
-        barcode,
+        barcode: barcode || null,
         ncm,
         aliquota,
         cfop,
         cst,
         csosn,
         stock: formattedQuantity,
-        category_id: selectedCategory,
+        category_id: selectedCategory || null,
         company_id: companyId,
       };
 

@@ -21,6 +21,7 @@ import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de instalar o react-native-vector-icons
 import { useAuth } from "./context/AuthContext.jsx"; // Caminho correto
 import SalesDashboard from "./screens/sales_dashboard/sales_dashboard.jsx";
+import ProductsSalesScreen from "./screens/produtcs_sales_screen/products_sales_screen.jsx";
 import LogoutScreen from "./components/logout_screen/logoutscreen.jsx";
 import EmployeeList from "./screens/employee_list/employee_list.jsx";
 import AppStack from "../appstack.js";
@@ -234,6 +235,21 @@ function RoutesAuth() {
             <Drawer.Screen
               name="Painel de Vendas"
               component={SalesDashboard}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="bar-chart"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Produtos Vendidos"
+              component={ProductsSalesScreen}
               options={{
                 headerShown: false,
                 drawerIcon: ({ color, size }) => (
