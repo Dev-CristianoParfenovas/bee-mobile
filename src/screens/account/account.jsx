@@ -50,7 +50,7 @@ function Account(props) {
           is_active: true,
         });
 
-        const response = await api.post("/companyemployee", {
+        const response = await api.post("/company/companyemployee", {
           name,
           email,
           password,

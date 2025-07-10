@@ -254,7 +254,7 @@ function RoutesAuth() {
                 headerShown: false,
                 drawerIcon: ({ color, size }) => (
                   <Icon
-                    name="bar-chart"
+                    name="shopping-bag"
                     color={color}
                     size={size}
                     style={{ marginLeft: -15 }}

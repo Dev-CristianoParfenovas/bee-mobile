@@ -21,6 +21,8 @@ import api from "../../constants/api.js";
 import { useRoute } from "@react-navigation/native";
 import { useCameraPermission } from "../../context/CameraPermissionContext.jsx";
 import { CameraView } from "expo-camera";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 function Products(props) {
   const { userName } = useAuth();
@@ -70,12 +72,19 @@ function Products(props) {
     }
   };
 
-  useEffect(() => {
+  /*useEffect(() => {
     console.log("Auth Token:", authToken);
     console.log("Company ID:", companyId);
     console.log("Employee ID: ", employeeId);
     fetchProducts();
-  }, [authToken, companyId, employeeId]);
+  }, [authToken, companyId, employeeId]);*/
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Tela focada. Buscando produtos...");
+      fetchProducts();
+    }, [authToken, companyId, employeeId])
+  );
 
   // Função para quando o item for clicado
   const handlePress = (item) => {
