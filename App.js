@@ -9,6 +9,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 
 function AppContent() {
+  // Build atualizado para forçar novo ícone
+  console.log("🔁 Forçando build com novo ícone");
+
   const { isAuthenticated, setIsAuthenticated } = useAuth();
 
   useEffect(() => {

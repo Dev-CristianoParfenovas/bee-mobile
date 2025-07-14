@@ -10,16 +10,19 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2e3192"
+      
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.beemobile.rnqrcode"
     },
-    "android": {
+
+    "android": {      
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundColor": "#2e3192"
+        
       },
       "permissions": [
         "android.permission.CAMERA",
@@ -47,4 +50,5 @@
       }
     }
   }
+  
 }
