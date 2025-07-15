@@ -4,7 +4,7 @@
     "slug": "bee-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo-bee.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -20,7 +20,7 @@
 
     "android": {      
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "foregroundImage": "./assets/logo-bee.png",
         "backgroundColor": "#2e3192"
         
       },
