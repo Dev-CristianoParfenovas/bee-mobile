@@ -21,19 +21,21 @@ import api from "../../constants/api.js";
 function EmployeeList() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { companyId } = useAuth(); // Ou ajuste conforme o seu contexto
+  const { companyId, authToken } = useAuth(); // Ou ajuste conforme o seu contexto
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchEmployees = async () => {
-    if (!companyId) {
+    if (!companyId || !authToken) {
       Alert.alert("Erro", "ID da empresa não definido.");
       return;
     }
 
     setLoading(true);
     try {
-      const response = await api.get(`/employees/${companyId}`);
+      const response = await api.get("/employees", {
+        headers: { Authorization: `Bearer ${authToken}` }, // ✅ Adicionando o token no cabeçalho
+      });
       const filtered = response.data.filter((emp) => emp.is_admin === false); // ✅ filtro
       setEmployees(filtered);
     } catch (error) {
@@ -51,12 +53,16 @@ function EmployeeList() {
   useFocusEffect(
     useCallback(() => {
       fetchEmployees(); // Recarrega a lista sempre que a tela ganhar foco
-    }, [])
+    }, [authToken, companyId])
   );
 
   const renderEmployee = ({ item }) => (
     <View style={styles.employeeItem}>
       <Text style={styles.employeeName}>{item.name}</Text>
+      {/* Renderização Condicional para o telefone */}
+      {item.phone ? (
+        <Text style={styles.employeePhone}>{item.phone}</Text>
+      ) : null}
       <Text style={styles.employeeEmail}>{item.email}</Text>
     </View>
   );

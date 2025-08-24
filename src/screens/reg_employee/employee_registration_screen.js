@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
   },
 
   containerInput: {
-    marginBottom: 20,
+    marginBottom: 10,
     justifyContent: "center",
   },
   inputWithIcon: {
@@ -83,5 +83,43 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: COLORS.white, // Altere para a cor desejada
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "85%",
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: "70%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: COLORS.blueprincipal,
+  },
+  modalItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+  },
+  modalText: {
+    fontSize: 16,
+    color: COLORS.black,
+  },
+  formContainer: {
+    marginBottom: 30, // espaço extra entre o último input + botão Criar Conta e o botão Ver Funcionários
+  },
+  buttonCreate: {
+    marginBottom: 15, // distância do botão "Criar Conta" até "Ver Funcionários"
+  },
+  buttonVerFuncionarios: {
+    // alignSelf: "center",
+    marginTop: 2, // distância do botão "Criar Conta" até "Ver Funcionários"
   },
 });

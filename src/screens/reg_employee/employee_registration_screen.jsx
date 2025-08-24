@@ -1,62 +1,131 @@
-import { useState } from "react";
-import { Image, View, Text, Alert, TouchableOpacity } from "react-native";
-import { MaterialIcons, FontAwesome } from "@expo/vector-icons"; // Biblioteca de ícones
-import icons from "../../constants/icons.js";
-import { styles } from "./employee_registration_screen.js";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons"; // Biblioteca de ícones
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useCallback, useState } from "react";
+import {
+  Alert,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Button from "../../components/button/button.jsx";
+import TextBox from "../../components/textbox/textbox.jsx";
+import api from "../../constants/api.js";
+import { default as icons, default as images } from "../../constants/icons.js";
+import { COLORS } from "../../constants/theme.js";
+import { AuthProvider, useAuth } from "../../context/AuthContext"; // Importa o AuthContext
 import {
   validateEmail,
-  validatePassword,
   validateName,
+  validatePassword,
+  validatePhone,
 } from "../../utils/validators.js";
-import { COLORS } from "../../constants/theme.js";
-import TextBox from "../../components/textbox/textbox.jsx";
-import images from "../../constants/icons.js";
-import api from "../../constants/api.js";
-import { useNavigation } from "@react-navigation/native";
-import { useAuth, AuthProvider } from "../../context/AuthContext"; // Importa o AuthContext
+import { styles } from "./employee_registration_screen.js";
 
 function EmployeeRegistrationScreen(props) {
   const { companyId } = useAuth(); // Acessa o company_id do AuthContext
   console.log("Company ID do Emplooyee registration:", companyId); // Deve exibir o ID no console
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ name: "", email: "", password: "" });
   const navigation = useNavigation(); // Hook para acessar a navegação
+  const [employees, setEmployees] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+
+  const limparCampos = () => {
+    setName("");
+    setEmail("");
+    setPhone("");
+    setPassword("");
+  };
+
+  //Busca funcionários Cadastrados
+  const fetchEmployees = async () => {
+    try {
+      setLoadingEmployees(true);
+      const token = await AsyncStorage.getItem("authToken");
+
+      if (!token) {
+        Alert.alert("Erro", "Usuário não autenticado.");
+        setLoadingEmployees(false);
+        return;
+      }
+
+      const response = await api.get("/employees", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setEmployees(response.data); // Ajuste caso a API retorne algo tipo response.data.data
+    } catch (error) {
+      console.error("Erro ao buscar funcionários:", error);
+      Alert.alert("Erro", "Não foi possível carregar os funcionários.");
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  // Abrir modal e carregar funcionários
+  const handleOpenModal = () => {
+    setModalVisible(true);
+    fetchEmployees();
+  };
+
+  // Preencher formulário com os dados do funcionário selecionado
+  const handleSelectEmployee = (employee) => {
+    setName(employee.name);
+    setEmail(employee.email);
+    setPhone(employee.phone || "");
+    setPassword("");
+    // Password não é carregada
+    setModalVisible(false);
+  };
 
   const handleCreateEmployee = async () => {
     // Valida os campos de entrada
     const nameError = validateName(name);
+    const phoneError = validatePhone(phone);
     const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
+    const passwordError = password ? validatePassword(password) : ""; // valida só se houver senha
 
     setErrors({
       name: nameError,
       email: emailError,
+      phone: phoneError,
       password: passwordError,
     });
 
-    if (!nameError && !emailError && !passwordError) {
+    if (!nameError && !emailError && !passwordError && !phoneError) {
       if (!companyId) {
         Alert.alert("Erro", "ID da empresa não está definido.");
         return;
       }
 
-      try {
-        console.log("Enviando dados para API:", {
-          name,
-          email,
-          password,
-          company_id: companyId,
-        });
+      setLoading(true);
 
-        const response = await api.post("/employees", {
+      try {
+        // Monta payload dinâmico
+        const payload = {
           name,
           email,
-          password,
+          phone,
           company_id: companyId,
-        });
+        };
+
+        // Só envia senha se tiver valor
+        if (password) {
+          payload.password = password;
+        }
+
+        console.log("Enviando dados para API:", payload);
+
+        const response = await api.post("/employees", payload);
 
         console.log("Status da resposta:", response.status);
         console.log("Dados da resposta:", response.data);
@@ -64,18 +133,18 @@ function EmployeeRegistrationScreen(props) {
         const { data } = response;
 
         if (data?.employee) {
-          console.log("Funcionário criado:", data.employee);
-          Alert.alert(
-            "Sucesso",
-            `Funcionário registrado com sucesso!` // ${data.employee.name}
-          );
+          console.log("Funcionário criado ou atualizado:", data.employee);
+          Alert.alert("Sucesso", `Funcionário registrado com sucesso!`);
+
           // Limpa os campos do formulário após o cadastro com sucesso
           setName("");
           setEmail("");
+          setPhone("");
           setPassword("");
           setErrors({
             name: "",
             email: "",
+            phone: "",
             password: "",
           });
         } else {
@@ -94,11 +163,19 @@ function EmployeeRegistrationScreen(props) {
         const errorMessage =
           error.response?.data?.message || "Erro desconhecido.";
         Alert.alert("Erro", errorMessage);
+      } finally {
+        setLoading(false);
       }
     } else {
       Alert.alert("Erro", "Por favor, corrija os erros antes de continuar.");
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      limparCampos();
+    }, []) // <-- dependências da função, se houver
+  );
 
   return (
     <AuthProvider>
@@ -122,14 +199,14 @@ function EmployeeRegistrationScreen(props) {
           source={images.beelogin}
           style={styles.watermark}
           resizeMode="contain"
-          opacity={0.1} // Ajuste para o efeito de marca d'água
+          opacity={0.1} // Ajuste para o efeito de marca d'águ  a
         />
 
         <View style={styles.containerlogo}>
           <Image source={icons.logobee} style={styles.beelogin} />
         </View>
 
-        <View>
+        <View style={styles.formContainer}>
           {/* Campo Nome */}
           <View style={styles.containerInput}>
             <View style={styles.inputWithIcon}>
@@ -165,12 +242,29 @@ function EmployeeRegistrationScreen(props) {
               <Text style={styles.errorText}>{errors.email}</Text>
             ) : null}
           </View>
+          {/*Campo Telefone*/}
+          <View style={styles.containerInput}>
+            <View style={styles.inputWithIcon}>
+              <MaterialIcons name="phone" size={24} color={COLORS.gray3} />
+              <TextBox
+                placeholder="Telefone"
+                placeholderTextColor={COLORS.gray3} // Cor do texto placeholder
+                style={[styles.input, errors.phone ? styles.inputError : null]}
+                value={phone}
+                onChangeText={(text) => setPhone(text)}
+                maskType="phone"
+              />
+            </View>
+            {errors.phone ? (
+              <Text style={styles.errorText}>{errors.phone}</Text>
+            ) : null}
+          </View>
           {/*Campo Senha*/}
           <View style={styles.containerInput}>
             <View style={styles.inputWithIcon}>
               <FontAwesome name="lock" size={24} color={COLORS.gray3} />
               <TextBox
-                placeholder="Senha"
+                placeholder={password ? "Senha" : "Digite para alterar a senha"}
                 isPassword={true}
                 value={password}
                 onChangeText={(text) => setPassword(text)}
@@ -185,9 +279,49 @@ function EmployeeRegistrationScreen(props) {
             ) : null}
           </View>
 
-          <Button text="Criar Conta" onPress={handleCreateEmployee} />
+          <Button
+            text="Criar Conta / Editar"
+            onPress={handleCreateEmployee}
+            loading={loading}
+            disabled={loading}
+            style={styles.buttonCreate}
+          />
+          {/* Botão ver funcionários */}
+          <Button
+            style={styles.buttonVerFuncionarios}
+            text="Ver Funcionários"
+            onPress={handleOpenModal}
+          />
         </View>
       </View>
+      {/* Modal fora do container */}
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Funcionários Cadastrados</Text>
+
+            {loadingEmployees ? (
+              <Text>Carregando...</Text>
+            ) : (
+              <ScrollView>
+                {employees.map((emp) => (
+                  <TouchableOpacity
+                    key={emp.id_employee}
+                    style={styles.modalItem}
+                    onPress={() => handleSelectEmployee(emp)}
+                  >
+                    <Text style={styles.modalText}>
+                      {emp.name} - {emp.email}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
+            <Button text="Fechar" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </AuthProvider>
   );
 }

@@ -21,8 +21,11 @@ import { TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons"; // Certifique-se de instalar o react-native-vector-icons
 import { useAuth } from "./context/AuthContext.jsx"; // Caminho correto
 import SalesDashboard from "./screens/sales_dashboard/sales_dashboard.jsx";
-import ProductsSalesScreen from "./screens/produtcs_sales_screen/products_sales_screen.jsx";
 import LogoutScreen from "./components/logout_screen/logoutscreen.jsx";
+import Vehicle from "./screens/reg_vehicle/vehicle_reg_screen.jsx";
+import VehiclesScreen from "./screens/customerVehiclesScreen/CustomerVehiclesScreen.jsx";
+import ProductsSalesScreen from "./screens/produtcs_sales_screen/products_sales_screen.jsx";
+import SalesDetailScreen from "./screens/saledetailscreen/saledetailscreen.jsx";
 import EmployeeList from "./screens/employee_list/employee_list.jsx";
 import AppStack from "../appstack.js";
 
@@ -172,6 +175,21 @@ function RoutesAuth() {
             />
 
             <Drawer.Screen
+              name="Cadastrar Veículos"
+              component={Vehicle}
+              options={{
+                headerShown: false,
+                drawerIcon: ({ color, size }) => (
+                  <Icon
+                    name="directions-car"
+                    color={color}
+                    size={size}
+                    style={{ marginLeft: -15 }}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
               name="Acessar Clientes"
               component={EmployeeCustomer}
               options={{
@@ -301,6 +319,24 @@ function RoutesAuth() {
                 drawerItemStyle: { height: 0 }, // Oculta o espaço do item
               }}
             />
+            <Drawer.Screen
+              name="Veículos"
+              component={VehiclesScreen}
+              options={{
+                headerShown: false, // ou false, dependendo se você quer ou não o header
+                drawerLabel: () => null,
+                drawerItemStyle: { height: 0 },
+              }}
+            />
+            <Drawer.Screen
+              name="SaleDetail"
+              component={SalesDetailScreen}
+              options={{
+                headerShown: false, // ou false, dependendo se você quer ou não o header
+                drawerLabel: () => null,
+                drawerItemStyle: { height: 0 },
+              }}
+            />
           </>
         )}
 
@@ -353,6 +389,24 @@ function RoutesAuth() {
               }}
             />
             <Drawer.Screen
+              name="Pagto"
+              component={Payment}
+              options={{
+                headerShown: false,
+                drawerLabel: () => null, // Oculta o nome do item
+                drawerItemStyle: { height: 0 }, // Oculta o espaço do item
+              }}
+            />
+            <Drawer.Screen
+              name="Veículos"
+              component={VehiclesScreen}
+              options={{
+                headerShown: false, // ou false, dependendo se você quer ou não o header
+                drawerLabel: () => null,
+                drawerItemStyle: { height: 0 },
+              }}
+            />
+            <Drawer.Screen
               name="Sair"
               component={LogoutScreen}
               options={{
@@ -365,15 +419,6 @@ function RoutesAuth() {
                     style={{ marginLeft: -15 }}
                   />
                 ),
-              }}
-            />
-            <Drawer.Screen
-              name="Pagto"
-              component={Payment}
-              options={{
-                headerShown: false,
-                drawerLabel: () => null, // Oculta o nome do item
-                drawerItemStyle: { height: 0 }, // Oculta o espaço do item
               }}
             />
           </>

@@ -53,31 +53,6 @@ export function AuthProvider({ children }) {
 
   const login = async (token, name, company_id, admin, employeeId) => {
     try {
-      await AsyncStorage.setItem("authToken", token);
-      await AsyncStorage.setItem("isAdmin", admin?.toString() || "false");
-      await AsyncStorage.setItem("userName", name || "");
-
-      if (company_id !== undefined && company_id !== null) {
-        await AsyncStorage.setItem("companyId", company_id.toString());
-        setCompanyId(company_id.toString());
-      }
-
-      if (employeeId !== undefined && employeeId !== null) {
-        await AsyncStorage.setItem("employeeId", employeeId.toString());
-        setEmployeeId(employeeId);
-      }
-
-      setIsAuthenticated(true);
-      setIsAdmin(!!admin);
-      setUserName(name);
-      setAuthToken(token);
-    } catch (error) {
-      console.error("Erro ao salvar dados de login:", error);
-    }
-  };
-
-  /*170625const login = async (token, name, company_id, admin, employeeId) => {
-    try {
       const companyIdToSave = company_id ? company_id.toString() : "";
       const employeeIdToSave = employeeId ? employeeId.toString() : ""; // Converte para string
 
@@ -96,7 +71,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Erro ao salvar dados de login:", error);
     }
-  };*/
+  };
 
   /* const login = async (token, name, company_id, admin = true) => {
     try {

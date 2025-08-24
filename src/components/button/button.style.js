@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     height: 50,
-    width: "100%", // Tamanho maior para o botão principal
+    // width: "100%", // Tamanho maior para o botão principal
   },
   btnpayment: {
     backgroundColor: COLORS.bluebtn,
@@ -24,5 +24,9 @@ export const styles = StyleSheet.create({
   text: {
     color: COLORS.white,
     fontSize: FONT_SIZE.lg,
+  },
+  btnDisabled: {
+    backgroundColor: "#A0A0A0", // Cor mais clara/cinza para o botão desabilitado
+    opacity: 0.7, // <<-- Isso cria o efeito de "desfoque" ou esmaecimento
   },
 });

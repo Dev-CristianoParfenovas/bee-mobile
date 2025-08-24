@@ -32,7 +32,7 @@ const Payment = () => {
 
   // Pega os parâmetros da navegação
   const route = useRoute();
-  const { customer, cartItems } = route.params || {}; // Recebe os itens do carrinho
+  const { customer, cartItems, vehicle } = route.params || {}; // Recebe os itens do carrinho
   console.log("employeeId na tela de pagamento:", employeeId);
 
   // Função para calcular subtotal (sem taxas)
@@ -129,6 +129,12 @@ const Payment = () => {
 
   const processSale = async (customerId, validEmployeeId, pixCode = null) => {
     try {
+      const hasVehicle =
+        vehicle &&
+        vehicle.license_plate &&
+        vehicle.id_vehicle &&
+        !isNaN(vehicle.id_vehicle);
+
       const saleData = cartItems.map((item) => ({
         company_id: companyId,
         product_id: item.id,
@@ -136,13 +142,22 @@ const Payment = () => {
         employee_id: validEmployeeId,
         quantity: parseFloat(item.quantity) || 1,
         total_price: parseFloat(item.price) || 0,
+        unit_price: parseFloat(item.unit_price) || 0,
         sale_date: new Date().toISOString(),
         tipovenda: pixCode ? 2 : 1, // Define o tipo de venda (1=Normal, 2=Pix)
+        ...(hasVehicle && {
+          vehicleInfo: {
+            vehicle_id: parseInt(vehicle.id_vehicle, 10),
+            license_plate: vehicle.license_plate,
+            model: vehicle.model,
+            km: parseFloat(vehicle.km) || 0,
+          },
+        }),
       }));
 
       console.log("Enviando dados da venda:", saleData);
 
-      const response = await api.post(`/sales/${companyId}`, saleData, {
+      const response = await api.post("/sales", saleData, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -172,6 +187,102 @@ const Payment = () => {
       Alert.alert("Erro", "Não foi possível concluir a venda.");
     }
   };
+
+  /*const processSale = async (customerId, validEmployeeId, pixCode = null) => {
+    try {
+      const saleData = cartItems.map((item) => ({
+        company_id: companyId,
+        product_id: item.id,
+        id_client: customerId,
+        employee_id: validEmployeeId,
+        quantity: parseFloat(item.quantity) || 1,
+        total_price: parseFloat(item.price) || 0,
+        sale_date: new Date().toISOString(),
+        tipovenda: pixCode ? 2 : 1, // Define o tipo de venda (1=Normal, 2=Pix)
+      }));
+
+      console.log("Enviando dados da venda:", saleData);
+
+      const response = await api.post(`/sales/${companyId}`, saleData, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+
+      if (response.status === 201) {
+        //GRAVAR OS DADOS DO VEICULOS
+        //const saleId = response.data.sale_id; // Certifique-se de que a API retorna o ID da venda
+        // Extrair o array de vendas retornado pela API
+        const salesArray = response.data.sales;
+        // Pega o ID da primeira venda criada
+        const saleId = salesArray[0].id;
+        // Verifica se há dados do veículo
+        if (vehicle && vehicle.license_plate) {
+          // ✅ VALIDAÇÃO DO ID DO VEÍCULO
+          if (!vehicle.id_vehicle || isNaN(vehicle.id_vehicle)) {
+            console.warn("ID do veículo inválido");
+            return;
+          }
+          const vehicleServiceData = {
+            sale_id: saleId, //parseInt(saleId, 10),
+            vehicle_id: parseInt(vehicle.id_vehicle, 10),
+            license_plate: vehicle.license_plate,
+            model: vehicle.model,
+            km: parseFloat(vehicle.km) || 0, // km como número com casas decimais
+            company_id: parseInt(companyId, 10),
+            employee_id: parseInt(validEmployeeId, 10),
+            client_id: parseInt(customerId, 10),
+          };
+
+          console.log(
+            "Dados do veículo: " +
+              vehicle.model +
+              " ID do veículo: " +
+              vehicle.id_vehicle
+          );
+
+          try {
+            const vehicleServiceResponse = await api.post(
+              `/vehicle_services`,
+              vehicleServiceData,
+              {
+                headers: { Authorization: `Bearer ${authToken}` },
+              }
+            );
+
+            if (vehicleServiceResponse.status === 201) {
+              console.log("Serviço de veículo registrado com sucesso.");
+            } else {
+              console.warn("Falha ao registrar o serviço de veículo.");
+            }
+          } catch (error) {
+            console.error("Erro ao registrar o serviço de veículo:", error);
+          }
+        }
+
+        Alert.alert("Venda finalizada!", "A venda foi registrada com sucesso.");
+        clearCart();
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: "DrawerScreen",
+              params: {
+                saleData,
+                customer: null,
+                cartItems: [],
+                total: 0,
+                subtotal: 0,
+              },
+            },
+          ],
+        });
+      } else {
+        Alert.alert("Erro", "Houve um problema ao registrar a venda.");
+      }
+    } catch (error) {
+      console.error("Erro ao processar a venda:", error);
+      Alert.alert("Erro", "Não foi possível concluir a venda.");
+    }
+  };*/
 
   const copyToClipboard = () => {
     Clipboard.setString(qrCodeData);
@@ -316,6 +427,11 @@ const Payment = () => {
       {customer && (
         <View style={styles.customerBanner}>
           <Text style={styles.customerText}>Cliente: {customer.name}</Text>
+          {vehicle?.license_plate && vehicle?.model && (
+            <Text style={styles.customerText}>
+              Placa: {vehicle.license_plate} - Modelo: {vehicle.model}
+            </Text>
+          )}
         </View>
       )}
 

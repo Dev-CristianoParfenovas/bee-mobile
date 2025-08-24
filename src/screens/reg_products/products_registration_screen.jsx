@@ -9,7 +9,6 @@ import {
   FlatList,
   ActivityIndicator,
   ScrollView,
-  SafeAreaView,
   Platform,
   StatusBar,
 } from "react-native";
@@ -28,7 +27,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import TextBox from "../../components/textbox/textbox.jsx";
 import * as ImagePicker from "expo-image-picker"; // Importa o ImagePicker
 import { useCameraPermission } from "../../context/CameraPermissionContext.jsx";
+import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
+import * as FileSystem from "expo-file-system";
+import ImageLoadingView from "../../components/img/imageloadingview.js";
 
 function ProductsRegistrationScreen() {
   const [name, setName] = useState("");
@@ -57,11 +59,66 @@ function ProductsRegistrationScreen() {
   const [scannedCode, setScannedCode] = useState();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [refreshProducts, setRefreshProducts] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(true);
 
-  // Função para buscar categorias
-  const fetchCategories = async (token, companyId) => {
+  const decodeJWT = (token) => {
     try {
-      const url = `/categories/${companyId}`;
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error("Token inválido:", e);
+      return null;
+    }
+  };
+
+  // Função para limpar os campos
+  const limpaCampos = () => {
+    setSelectedProductId(null);
+    setName("");
+    setPrice("");
+    setBarcode("");
+    setScannedCode("");
+    setNcm("");
+    setAliquota("");
+    setCfop("");
+    setCst("");
+    setCsosn("");
+    setQuantity("");
+    setSelectedCategory("");
+    setImageUri(null);
+  };
+
+  // Função pra limpar da memoria  qdo tira foto pro produto
+  const clearImageCache = async () => {
+    try {
+      const cacheDirectory = `${FileSystem.cacheDirectory}ImagePicker`;
+
+      // NOVO: Verifica se o diretório existe antes de tentar ler
+      const dirInfo = await FileSystem.getInfoAsync(cacheDirectory);
+
+      if (dirInfo.exists && dirInfo.isDirectory) {
+        console.log("Limpando cache do ImagePicker...");
+        await FileSystem.deleteAsync(cacheDirectory, { idempotent: true });
+      } else {
+        console.log(
+          "Diretório de cache do ImagePicker não existe. Nada para limpar."
+        );
+      }
+    } catch (e) {
+      console.error("Erro ao limpar cache do ImagePicker:", e);
+    }
+  };
+  // Função para buscar categorias
+  const fetchCategories = async (token) => {
+    try {
+      const url = "/categories";
       const response = await api.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -112,10 +169,21 @@ function ProductsRegistrationScreen() {
   };
 
   // Função para buscar produtos
-  const fetchProducts = async (token, companyId) => {
-    setLoading(true);
+  const fetchProducts = async (token) => {
+    setProductsLoading(true);
+
+    // Decodificar token e verificar payload
+    const decoded = decodeJWT(token);
+    console.log("Payload do token:", decoded);
+
+    if (!decoded?.company_id) {
+      console.warn(
+        "Token não contém company_id. Pode ser token antigo ou inválido."
+      );
+    }
+
     try {
-      const response = await api.get(`/products/${companyId}`, {
+      const response = await api.get("/products", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -138,29 +206,35 @@ function ProductsRegistrationScreen() {
           "Não foi possível carregar os produtos."
       );
     } finally {
-      setLoading(false);
+      setProductsLoading(false);
     }
   };
 
   // Função para capturar imagem da câmera
   const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permissão necessária",
-        "A permissão para usar a câmera é necessária."
-      );
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permissão necessária",
+          "A permissão para usar a câmera é necessária."
+        );
+        return;
+      }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+      });
 
-    if (!result.cancelled) {
-      setImageUri(result.uri); // Armazena a URI da imagem tirada
+      if (!result.canceled) {
+        setImageUri(result.assets[0].uri);
+        console.log("Imagem capturada URI:", result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Ocorreu um erro ao tirar a foto:", error);
+      Alert.alert("Erro", "Ocorreu um erro inesperado ao tirar a foto.");
     }
   };
 
@@ -181,8 +255,9 @@ function ProductsRegistrationScreen() {
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      setImageUri(result.uri); // Armazena a URI da imagem selecionada
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      console.log("Imagem selecionada URI:", result.assets[0].uri);
     }
   };
 
@@ -191,35 +266,36 @@ function ProductsRegistrationScreen() {
     const initialize = async () => {
       try {
         const token = await AsyncStorage.getItem("authToken");
-        const companyId = await AsyncStorage.getItem("companyId");
+        const storedCompanyId = await AsyncStorage.getItem("companyId"); // Renomeado para evitar conflito
 
-        console.log("Valores recuperados do AsyncStorage:", {
-          token,
-          companyId,
-        });
-
-        if (!token || !companyId) {
+        if (!token || !storedCompanyId) {
           Alert.alert("Erro", "Usuário ou empresa não autenticados.");
           navigation.navigate("Login");
           return;
         }
 
         setUserToken(token);
-        setCompanyId(companyId);
+        setCompanyId(storedCompanyId); // Use o nome renomeado aqui
 
-        await fetchCategories(token, companyId);
-        await fetchProducts(token, companyId);
+        // Remova a chamada a fetchProducts daqui se o segundo useEffect já lida com isso.
+        // Ou mantenha aqui se quiser que ele carregue na inicialização e o segundo seja apenas para refreshes.
+        // Se ambos chamam, o segundo useEffect pode ser simplificado para depender de refreshProducts apenas.
+        await fetchCategories(token, storedCompanyId); // Assumindo que você tem fetchCategories
+        await fetchProducts(token, storedCompanyId); // Chama fetchProducts para carregar a lista inicial
       } catch (error) {
         console.error("Erro na inicialização:", error);
         Alert.alert("Erro", "Falha ao carregar dados iniciais.");
       }
     };
-
     initialize();
   }, []);
 
   useEffect(() => {
-    if (userToken && companyId) {
+    // Este useEffect só deve ser chamado se houver uma razão para "refrescar" a lista
+    // Fora da inicialização. Se você já chamou fetchProducts no primeiro useEffect,
+    // e handleCreateProduct também chama, talvez este segundo possa ser mais específico.
+    if (userToken && companyId && refreshProducts) {
+      // Adicione 'refreshProducts' como uma dependência real
       fetchProducts(userToken, companyId);
     }
   }, [refreshProducts, userToken, companyId]);
@@ -228,13 +304,13 @@ function ProductsRegistrationScreen() {
   const handleSearchProduct = debounce(async () => {
     if (!search.trim()) return; // Não faz a requisição se a busca estiver vazia
 
+    console.log("Search normal:", search);
+    console.log("Search trim:", search.trim());
+
     try {
-      const response = await api.get(
-        `/products/${companyId}?search=${search}`,
-        {
-          headers: { Authorization: `Bearer ${userToken}` },
-        }
-      );
+      const response = await api.get(`/products?search=${search}`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
 
       console.log("Resposta da API: ", response.data);
 
@@ -260,22 +336,16 @@ function ProductsRegistrationScreen() {
     handleSearchProduct(); // Chama a função de busca com debounce
   };
 
-  // Função de cadastro de produto
   const handleCreateProduct = async () => {
-    if (!name || !price) {
+    if (loading) return; // ⚠️ impede múltiplos cliques
+
+    if (!name || !price || !quantity || !selectedCategory) {
       Alert.alert("Erro", "Todos os campos devem ser preenchidos.");
       return;
     }
 
-    if (isNaN(Number(price)) || isNaN(Number(quantity))) {
-      Alert.alert("Erro", "Preço e quantidade devem ser números válidos.");
-      return;
-    }
-
-    if (!companyId) {
-      Alert.alert("Erro", "ID da empresa não está definido.");
-      return;
-    }
+    // 1. INÍCIO: Ativa o estado de carregamento e desabilita o botão
+    setLoading(true);
 
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -287,57 +357,93 @@ function ProductsRegistrationScreen() {
       const formattedPrice = parseFloat(price.replace(",", "."));
       const formattedQuantity = Number(quantity);
 
-      const payload = {
-        id: selectedProductId || null, // Se não houver ID, será enviado `null`
+      // Primeira requisição para criar o produto, sem a imagem.
+      // O id é null para indicar uma nova criação.
+      const productPayload = {
+        id: null, // Correctly set to null for new product creation
         name,
         price: formattedPrice,
-        barcode: barcode || null,
+        barcode,
         ncm,
         aliquota,
         cfop,
         cst,
         csosn,
-        stock: formattedQuantity,
-        category_id: selectedCategory || null,
+        stock: formattedQuantity, // Note: backend expects 'stock', not 'quantity' if you're sending this
+        category_id: selectedCategory,
         company_id: companyId,
       };
 
-      console.log("Payload antes de enviar para a API:", payload);
+      const productResponse = await api.post("/products", productPayload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const createdProduct = productResponse.data.data || productResponse.data;
+      const productId = createdProduct.product?.id;
+      console.log("Produto criado:", createdProduct);
+
+      if (!productId) {
+        Alert.alert("Erro", "ID do produto criado não foi retornado.");
+        return;
+      }
+
+      // Não precisamos de imageUrl = null aqui, pois não vamos atualizar products com ela
 
       if (imageUri) {
         const uriParts = imageUri.split(".");
-        const fileType = uriParts[uriParts.length - 1];
-        formData.append("image", {
-          uri: imageUri,
+        const fileType = uriParts[uriParts.length - 1].toLowerCase();
+
+        const getMimeType = (ext) => {
+          if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+          if (ext === "png") return "image/png";
+          if (ext === "webp") return "image/webp";
+          return `image/${ext}`;
+        };
+
+        let uri = imageUri;
+        if (Platform.OS === "android" && !uri.startsWith("file://")) {
+          uri = "file://" + uri;
+        }
+
+        console.log("Image URI antes do upload:", uri);
+
+        const imageFormData = new FormData();
+        // O backend espera o 'product_id' e o 'company_id' como string.
+        imageFormData.append("product_id", String(productId));
+        imageFormData.append("company_id", String(companyId));
+        imageFormData.append("image", {
+          uri,
           name: `product_image.${fileType}`,
-          type: `image/${fileType}`,
+          type: getMimeType(fileType),
         });
+
+        // Debug: listar tudo que está no FormData antes de enviar
+        for (let pair of imageFormData.entries()) {
+          console.log(pair[0], pair[1]);
+        }
+
+        const imageResponse = await api.post("/images", imageFormData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data", // Importante para FormData
+          },
+        });
+
+        console.log("Resposta upload imagem:", imageResponse.data);
+
+        // Não há necessidade de 'imageUrl = imageResponse.data.image_url;'
+        // Nem de fazer um 'api.put' para products com image_url
+        // Pois a imagem já foi associada via 'images' table.
       }
 
-      const response = await api.post("/products", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      Alert.alert("Sucesso", "Produto cadastrado com sucesso!");
+      fetchProducts(token, companyId); // Atualiza a lista de produtos
 
-      console.log("Resposta completa da API:", response.data);
-      Alert.alert("Sucesso", response.data.message);
-
-      // Atualiza a lista de produtos após a criação
-
-      fetchProducts(token, companyId); // Forçar nova requisição para buscar todos os produtos
-      // Atualizando a lista de produtos
-      /* setProducts((prevProducts) => {
-          // Se o produto já existir na lista, substituímos
-          const updatedProducts = prevProducts.filter((item) => item.id !== id);
-          return [id, ...updatedProducts];
-        });*/
-      // Limpa os campos após sucesso
+      // Limpar campos
       setSelectedProductId(null);
       setName("");
       setPrice("");
       setBarcode("");
-      setScannedCode("");
       setNcm("");
       setAliquota("");
       setCfop("");
@@ -345,13 +451,17 @@ function ProductsRegistrationScreen() {
       setCsosn("");
       setQuantity("");
       setSelectedCategory("");
-      setRefreshProducts((prev) => !prev);
+      setImageUri(null);
+      await clearImageCache();
     } catch (error) {
-      console.error("Erro na requisição:", error);
-      const errorMessage =
-        error?.response?.data?.message ||
-        "Não foi possível cadastrar o produto.";
-      Alert.alert("Erro", errorMessage);
+      console.error("Erro no cadastro do produto:", error);
+      Alert.alert(
+        "Erro",
+        error.response?.data?.message || "Não foi possível cadastrar o produto."
+      );
+    } finally {
+      // 2. FIM: Desativa o estado de carregamento
+      setLoading(false);
     }
   };
 
@@ -373,6 +483,42 @@ function ProductsRegistrationScreen() {
     );
   };
   //FUNÇÃO REMOVER PRODUTO
+  /* const handleRemoveProduct = async (productId) => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      if (!token) {
+        Alert.alert("Erro", "Token não encontrado. Faça login novamente.");
+        return;
+      }
+
+      const companyId = await AsyncStorage.getItem("companyId");
+      if (!companyId) {
+        Alert.alert("Erro", "ID da empresa não encontrado.");
+        return;
+      }
+
+      const response = await api.delete(`/products/${productId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        Alert.alert("Sucesso", response.data.message);
+        setRefreshProducts((prev) => !prev);
+        fetchProducts(token, companyId); // Forçar nova requisição para buscar todos os produtos
+      } else {
+        throw new Error("Erro ao excluir produto");
+      }
+    } catch (error) {
+      console.error("Erro ao remover produto:", error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível remover o produto. Tente novamente."
+      );
+    }
+  };*/
+
   const handleRemoveProduct = async (productId) => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -387,19 +533,18 @@ function ProductsRegistrationScreen() {
         return;
       }
 
-      const response = await api.delete(
-        `/products/${productId}?companyId=${companyId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.delete(`/products/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.status === 200) {
         Alert.alert("Sucesso", response.data.message);
         setRefreshProducts((prev) => !prev);
-        fetchProducts(token, companyId); // Forçar nova requisição para buscar todos os produtos
+        fetchProducts(token, companyId); // Atualiza lista de produtos
+      } else if (response.status === 404) {
+        Alert.alert("Aviso", "Produto não encontrado ou já foi excluído.");
+        setRefreshProducts((prev) => !prev);
+        fetchProducts(token, companyId);
       } else {
         throw new Error("Erro ao excluir produto");
       }
@@ -407,7 +552,8 @@ function ProductsRegistrationScreen() {
       console.error("Erro ao remover produto:", error);
       Alert.alert(
         "Erro",
-        "Não foi possível remover o produto. Tente novamente."
+        error.response?.data?.error ||
+          "Não foi possível remover o produto. Tente novamente."
       );
     }
   };
@@ -458,6 +604,21 @@ function ProductsRegistrationScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // Quando a tela ganha foco, limpa os campos do formulário
+      setSelectedProductId(null);
+      setName("");
+      setPrice("");
+      setBarcode("");
+      setScannedCode("");
+      setNcm("");
+      setAliquota("");
+      setCfop("");
+      setCst("");
+      setCsosn("");
+      setQuantity("");
+      setSelectedCategory("");
+      setImageUri(null);
+
       if (!userToken || !companyId) {
         console.warn("Token ou CompanyId indefinido no foco da tela");
         return;
@@ -499,7 +660,13 @@ function ProductsRegistrationScreen() {
           </View>
           <View style={styles.containerbtnSearch}>
             <ButtonSearch text="Buscar" onPress={handleChangeSearch} />
-            <ButtonSearch text="Voltar lista" onPress={resetProductsList} />
+            <ButtonSearch
+              text="Voltar lista"
+              onPress={() => {
+                limpaCampos();
+                resetProductsList(); // aqui você volta para a lista
+              }}
+            />
           </View>
         </View>
 
@@ -741,25 +908,47 @@ function ProductsRegistrationScreen() {
 
       {/* Botão Cadastrar Produto */}
       <View style={styles.bottomButtonContainer}>
-        <Button text="Cadastrar Produto" onPress={handleCreateProduct} />
+        <Button
+          text="Cadastrar Produto"
+          onPress={handleCreateProduct}
+          loading={loading}
+        />
       </View>
 
       {/* FlatList de Produtos */}
 
-      {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      {productsLoading ? ( // Renderiza o spinner GRANDE da lista
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 20,
+            marginTop: 20,
+          }}
+        >
+          <ActivityIndicator size="large" color={COLORS.primary || "#007bff"} />
+          <Text
+            style={{
+              marginTop: 10,
+              fontSize: 16,
+              color: COLORS.text || "#333",
+            }}
+          >
+            Carregando produtos...
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={products}
-          keyExtractor={(item, index) =>
-            item.id?.toString() || index.toString()
-          }
+          keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             if (!item || !item.id) return null;
 
             return (
               <View style={styles.productCard}>
+                <ImageLoadingView imageUrl={item.image_url} imageSize={100} />
                 <Text style={styles.productName}>{item.name}</Text>
                 <Text style={styles.productDetails}>
                   Preço: R$ {item.price} | Estoque:{" "}
@@ -812,3 +1001,46 @@ function ProductsRegistrationScreen() {
 }
 
 export default ProductsRegistrationScreen;
+
+/*const payload = {
+        id: selectedProductId || null, // Se não houver ID, será enviado `null`
+        name,
+        price: formattedPrice,
+        barcode,
+        ncm,
+        aliquota,
+        cfop,
+        cst,
+        csosn,
+        stock: formattedQuantity,
+        category_id: selectedCategory,
+        company_id: companyId,
+      };
+
+      console.log("Payload antes de enviar para a API:", payload);
+
+      if (imageUri) {
+        const uriParts = imageUri.split(".");
+        const fileType = uriParts[uriParts.length - 1];
+        formData.append("image", {
+          uri: imageUri,
+          name: `product_image.${fileType}`,
+          type: `image/${fileType}`,
+        });
+      }*/
+
+/* {
+          id: selectedProductId || "",
+          name,
+          price: parseFloat(price.replace(",", ".")),
+          barcode,
+          ncm,
+          aliquota,
+          cfop,
+          cst,
+          csosn,
+          stock: Number(quantity),
+          category_id: selectedCategory,
+          company_id: companyId,
+          uri: imageUri,
+        },*/

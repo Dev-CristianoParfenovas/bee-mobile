@@ -1,40 +1,45 @@
 {
   "expo": {
-    "name": "bee-mobile",
-    "slug": "bee-mobile",
+    "name": "bee-lub",
+    "slug": "bee-lub",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-bee.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splashscreen_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#2e3192"
-      
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.beemobile.rnqrcode"
+      "bundleIdentifier": "com.beelub.app"
     },
-
-    "android": {      
+    "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-bee.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2e3192"
-        
       },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.anonymous.beemobile",
-      "usesCleartextTraffic": true
+      "package": "com.beelub.app"
+      
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
       [
         "expo-camera",
         {
@@ -42,13 +47,14 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-barcode-scanner"
+      
     ],
     "extra": {
       "eas": {
-        "projectId": "89935070-e788-4722-8933-6197d2eb6220"
+        "projectId": "c6ba7957-a0f5-413e-b767-910a93f0e538"
       }
     }
   }
-  
 }

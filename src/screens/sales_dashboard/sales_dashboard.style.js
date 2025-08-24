@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   containerfunc: {
-    height: 56,
+    height: 60,
     width: "95%",
     paddingHorizontal: 10,
     alignSelf: "center",
@@ -25,6 +25,9 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 5,
     backgroundColor: COLORS.gray5,
+  },
+  containervendas: {
+    flex: 1,
   },
   watermark: {
     position: "absolute",
@@ -68,20 +71,24 @@ export const styles = StyleSheet.create({
   },
   itemRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginVertical: 5,
-    paddingVertical: 10,
+    justifyContent: "flex-start", // Altere de "space-between" para "flex-start"
+    paddingVertical: 5,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray3, // Separador entre itens
+    borderBottomColor: COLORS.gray3,
+    paddingHorizontal: 10, // Separador entre itens
   },
   itemName: {
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.sm,
     color: COLORS.black,
+    flex: 1, // Permite que o nome do funcionário ocupe o espaço restante
+    flexWrap: "wrap", // Garante que o texto quebre a linha se for muito longo
+    marginRight: 5,
   },
   itemPrice: {
-    fontSize: FONT_SIZE.md,
+    fontSize: FONT_SIZE.sm,
     color: COLORS.black,
+    marginRight: 10,
   },
   dateFilters: {
     flexDirection: "row",
@@ -116,5 +123,41 @@ export const styles = StyleSheet.create({
     color: "white", // Cor do texto
     fontSize: FONT_SIZE.md, // Tamanho da fonte (faça referência ao seu arquivo de fontes)
     fontWeight: "bold", // Peso da fonte (opcional)
+  },
+  selectedEmployeeText: {
+    //  alignItems: "center",
+    //justifyContent: "center",
+    fontWeight: "bold",
+  },
+  employeeText: {
+    marginLeft: 15,
+    justifyContent: "center",
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    backgroundColor: "#fff", // importante se o fundo da tela for branco também
+    marginVertical: 10,
+  },
+  detailButton: {
+    backgroundColor: COLORS.bluebtn,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 80, // Defina uma largura mínima para o botão
+  },
+  detailButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  carregandoTela: {
+    marginTop: 70,
+    alignItems: "center",
   },
 });

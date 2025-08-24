@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,12 @@ import {
   Platform,
   StatusBar,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./products.style.js";
 import { products } from "../../constants/dados.js";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import TextBox from "../../components/textbox/textbox.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useCart } from "../../context/CartContext.jsx";
@@ -21,8 +22,7 @@ import api from "../../constants/api.js";
 import { useRoute } from "@react-navigation/native";
 import { useCameraPermission } from "../../context/CameraPermissionContext.jsx";
 import { CameraView } from "expo-camera";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
+import ImageLoadingView from "../../components/img/imageloadingview.js";
 
 function Products(props) {
   const { userName } = useAuth();
@@ -47,14 +47,14 @@ function Products(props) {
 
   // Função para buscar os produtos da API
   const fetchProducts = async () => {
-    if (!authToken || !companyId) {
-      console.warn("Token ou Company ID ausente.");
+    if (!authToken) {
+      console.warn("Token ausente.");
       return;
     }
 
     try {
       setLoading(true); // Inicia o indicador de carregamento
-      const response = await api.get(`/products/${companyId}`, {
+      const response = await api.get(`/products`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -72,19 +72,12 @@ function Products(props) {
     }
   };
 
-  /*useEffect(() => {
+  useEffect(() => {
     console.log("Auth Token:", authToken);
     console.log("Company ID:", companyId);
     console.log("Employee ID: ", employeeId);
     fetchProducts();
-  }, [authToken, companyId, employeeId]);*/
-
-  useFocusEffect(
-    useCallback(() => {
-      console.log("Tela focada. Buscando produtos...");
-      fetchProducts();
-    }, [authToken, companyId, employeeId])
-  );
+  }, [authToken, companyId, employeeId]);
 
   // Função para quando o item for clicado
   const handlePress = (item) => {
@@ -157,6 +150,13 @@ function Products(props) {
       );
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Tela focada. Buscando produtos...");
+      fetchProducts();
+    }, [authToken, companyId, employeeId])
+  );
 
   return (
     <View style={styles.container}>
@@ -288,11 +288,16 @@ function Products(props) {
             data={filteredProducts}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.card}>
-                <Image source={{ uri: item.image }} style={styles.image} />
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => handleAddToCart(item)}
+              >
+                <ImageLoadingView imageUrl={item.image_url} imageSize={100} />
                 <View style={styles.details}>
                   <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.price}>R$ {item.price}</Text>
+                  <Text style={styles.price}>
+                    R$ {parseFloat(item.price).toFixed(2).replace(".", ",")}
+                  </Text>
                   <TouchableOpacity
                     style={styles.addToCartButton}
                     onPress={() => handleAddToCart(item)}
@@ -305,8 +310,11 @@ function Products(props) {
                     <Text style={styles.addToCartText}>Adicionar</Text>
                   </TouchableOpacity>
                 </View>
+                {/* --- FIM DA MUDANÇA --- */}
               </TouchableOpacity>
             )}
+            showsVerticalScrollIndicator={false} // 👈 esconde a barra vertical
+            showsHorizontalScrollIndicator={false} // 👈 se for lista horizontal
           />
         )}
       </View>

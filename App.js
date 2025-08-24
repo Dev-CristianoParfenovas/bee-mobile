@@ -1,27 +1,22 @@
-import { useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
 import Routes from "./src/routes";
 import RoutesAuth from "./src/routesAuth";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import { UserProvider } from "./src/context/UserContext"; // Importe o UserProvider
 import { CartProvider } from "./src/context/CartContext";
 import { CameraPermissionProvider } from "./src/context/CameraPermissionContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NavigationContainer } from "@react-navigation/native";
 
 function AppContent() {
-  // Build atualizado para forçar novo ícone
-  console.log("🔁 Forçando build com novo ícone");
+  const { isAuthenticated } = useAuth();
 
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
-
-  useEffect(() => {
+  /*useEffect(() => {
     const checkAuthStatus = async () => {
       const token = await AsyncStorage.getItem("authToken");
       setIsAuthenticated(!!token); // Define como autenticado se o token existir
     };
 
     checkAuthStatus();
-  }, [setIsAuthenticated]);
+  }, [setIsAuthenticated]);*/
 
   return (
     <NavigationContainer>
